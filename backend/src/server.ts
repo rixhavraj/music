@@ -491,6 +491,18 @@ app.get("/api/stream/:id", optionalAuth, async (req, res) => {
     }
   }
 
+  if (process.env.MUSIC_SOURCE !== "ytmusic" && process.env.MUSIC_SOURCE !== "mock") {
+    try {
+      const directUrl = await getMusicSource().getStreamUrl(parsed.data);
+      if (directUrl) {
+        res.redirect(directUrl);
+        return;
+      }
+    } catch (error) {
+      console.error("Streaming URL resolution error:", error);
+    }
+  }
+
   // Fallback to tone generation if not ytmusic
   const frequency = 220 + (parsed.data.charCodeAt(0) % 12) * 22;
   res.setHeader("Content-Type", "audio/wav");
