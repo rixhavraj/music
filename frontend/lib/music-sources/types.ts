@@ -1,0 +1,7 @@
+import type { Track, TrackDetails } from "@/types/music";
+
+export type MusicSource = {
+  search(query: string, limit?: number): Promise<Track[]>;
+  getTrack(id: string): Promise<TrackDetails | null>;
+  getStreamUrl(id: string): Promise<string | null>;
+};

@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  background: #000000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #000000;
+  color: #ffffff;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #1db954;
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #1db954;
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes jingle-bar {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1.1); }
+}
+
+.animate-jingle-1 {
+  animation: jingle-bar 0.75s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+.animate-jingle-2 {
+  animation: jingle-bar 0.55s ease-in-out infinite 0.15s;
+  transform-origin: bottom;
+}
+
+.animate-jingle-3 {
+  animation: jingle-bar 0.85s ease-in-out infinite 0.3s;
+  transform-origin: bottom;
+}
+
+.animate-jingle-4 {
+  animation: jingle-bar 0.65s ease-in-out infinite 0.45s;
+  transform-origin: bottom;
+}
