@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
     ]
   },
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:3001";
+    const backendUrl = process.env.BACKEND || process.env.BACKEND_URL || "http://127.0.0.1:3001";
     const destUrl = backendUrl.endsWith("/") ? backendUrl.slice(0, -1) : backendUrl;
     return [
       {
