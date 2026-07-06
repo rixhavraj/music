@@ -3,14 +3,20 @@ import type { Track, TrackDetails } from "@/types/music";
 import YTMusic from "ytmusic-api";
 
 let ytInstance: YTMusic | null = null;
+let ytInitPromise: Promise<YTMusic> | null = null;
 
 async function getYTMusicClient(): Promise<YTMusic> {
-  if (!ytInstance) {
-    ytInstance = new YTMusic();
-    await ytInstance.initialize();
+  if (!ytInitPromise) {
+    ytInitPromise = (async () => {
+      const instance = new YTMusic();
+      await instance.initialize();
+      ytInstance = instance;
+      return instance;
+    })();
   }
-  return ytInstance;
+  return ytInitPromise;
 }
+
 
 type YTMusicSearchTrack = {
   type: string;

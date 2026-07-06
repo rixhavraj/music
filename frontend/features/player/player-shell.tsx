@@ -3,14 +3,14 @@
 import {
   Pause, Play, SkipForward, Volume2, VolumeX,
   Repeat, Repeat1, Shuffle, SkipBack, Heart, CheckCircle2,
-  ChevronDown, ListMusic, MoreHorizontal,
+  ChevronDown, ListMusic, MoreHorizontal, MessageSquare,
 } from "lucide-react";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TrackArt } from "@/components/track-art";
 import { usePlayerStore } from "@/store/player-store";
 
-const BAR_COUNT = 36;
+const BAR_COUNT = 24;
 
 function hashColorFromString(str: string): string {
   let hash = 0;
@@ -53,6 +53,8 @@ export function PlayerShell() {
   const [prevVol, setPrevVol]       = useState(0.78);
   const [dragging, setDragging]     = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState("");
 
   const {
     currentTrack, isPlaying, shuffle, repeat, volume, likedIds,
@@ -63,6 +65,46 @@ export function PlayerShell() {
   const isLiked      = currentTrack ? likedIds.includes(currentTrack.id) : false;
   const totalDur     = (Number.isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || 1);
   const pct          = (progress / totalDur) * 100;
+
+  // Load comments on mount or currentTrack change
+  useEffect(() => {
+    if (!currentTrack) return;
+    const stored = localStorage.getItem("lofi-comments");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setComments(parsed[currentTrack.id] || []);
+      } catch (_) {
+        setComments([]);
+      }
+    } else {
+      setComments([]);
+    }
+  }, [currentTrack?.id, isExpanded]);
+
+  const handlePostComment = () => {
+    if (!newComment.trim() || !currentTrack) return;
+    const newCommentObj = {
+      id: Math.random().toString(36).substring(2, 9),
+      user: "rishavraj",
+      text: newComment.trim(),
+      time: "Just now",
+    };
+    const updated = [newCommentObj, ...comments];
+    setComments(updated);
+    setNewComment("");
+
+    // Write back to localStorage
+    const stored = localStorage.getItem("lofi-comments");
+    let parsed: Record<string, any[]> = {};
+    if (stored) {
+      try {
+        parsed = JSON.parse(stored);
+      } catch (_) {}
+    }
+    parsed[currentTrack.id] = updated;
+    localStorage.setItem("lofi-comments", JSON.stringify(parsed));
+  };
 
   // ─── Volume sync ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -91,24 +133,9 @@ export function PlayerShell() {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (isPlaying) { audio.play().catch(() => setPlaying(false)); initAnalyser(); }
+    if (isPlaying) { audio.play().catch(() => setPlaying(false)); }
     else audio.pause();
   }, [isPlaying, setPlaying]);
-
-  // ─── Analyser init ───────────────────────────────────────────────────────
-  function initAnalyser() {
-    const audio = audioRef.current;
-    if (!audio || analyserRef.current) return;
-    try {
-      const ctx = new AudioContext();
-      audioCtxRef.current = ctx;
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 128;
-      ctx.createMediaElementSource(audio).connect(analyser);
-      analyser.connect(ctx.destination);
-      analyserRef.current = analyser;
-    } catch { /* ignore */ }
-  }
 
   // ─── Waveform loop ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -120,20 +147,16 @@ export function PlayerShell() {
       });
       return;
     }
-    const analyser = analyserRef.current;
-    const data = new Uint8Array(analyser?.frequencyBinCount ?? BAR_COUNT);
     const draw = () => {
       animRef.current = requestAnimationFrame(draw);
-      if (analyser) analyser.getByteFrequencyData(data);
       barsRef.current.forEach((el, i) => {
         if (!el) return;
         const h = heights[i] || 0.5;
-        const raw    = analyser ? data[Math.floor(i * data.length / BAR_COUNT)]
-                                : 50 + Math.sin(Date.now() / 180 + i * 0.65) * 40 + Math.random() * 15;
+        const raw = 50 + Math.sin(Date.now() / 150 + i * 0.5) * 35 + Math.random() * 15;
         const played = (i / BAR_COUNT) < (pct / 100);
         const factor = 0.5 + (raw / 255) * 0.8;
         el.style.height          = `${h * factor * 24}px`;
-        el.style.backgroundColor = played ? "#f5c842" : "rgba(255,255,255,0.2)";
+        el.style.backgroundColor = played ? "#ff7a8a" : "rgba(255,255,255,0.2)";
       });
     };
     draw();
@@ -148,7 +171,7 @@ export function PlayerShell() {
     barsRef.current.forEach((el, i) => {
       if (!el) return;
       const played = (i / BAR_COUNT) < (pct / 100);
-      el.style.backgroundColor = played ? "#f5c842" : "rgba(255,255,255,0.2)";
+      el.style.backgroundColor = played ? "#ff7a8a" : "rgba(255,255,255,0.2)";
       if (heights[i]) el.style.height = `${heights[i] * 24}px`;
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -182,15 +205,15 @@ export function PlayerShell() {
   };
 
   const pillBg: React.CSSProperties = {
-    background:     "linear-gradient(145deg, #2d2d1f 0%, #1c1c12 100%)",
-    border:         "1px solid rgba(255,255,255,0.09)",
+    background:     "linear-gradient(145deg, #1c1c24 0%, #141724 100%)",
+    border:         "1px solid rgba(255,255,255,0.06)",
     backdropFilter: "blur(24px)",
-    boxShadow:      "0 12px 48px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07)",
+    boxShadow:      "0 12px 48px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.05)",
   };
 
   const goldBtn: React.CSSProperties = {
-    background: "linear-gradient(135deg, #f5c842 0%, #e09900 100%)",
-    boxShadow:  "0 2px 12px rgba(245,200,66,0.35)",
+    background: "linear-gradient(135deg, #ff7a8a 0%, #ff6b7d 100%)",
+    boxShadow:  "0 2px 12px rgba(255,122,138,0.35)",
   };
 
   // ─── Shared waveform element ──────────────────────────────────────────────
@@ -202,7 +225,7 @@ export function PlayerShell() {
     return (
       <div
         ref={seekRef}
-        className={`flex items-end gap-[2.5px] cursor-pointer select-none ${className}`}
+        className={`flex items-end gap-[2.5px] cursor-pointer select-none min-w-0 overflow-hidden ${className}`}
         onMouseDown={(e) => { setDragging(true); seekAt(e.clientX); }}
         onMouseMove={(e) => { if (dragging) seekAt(e.clientX); }}
         onMouseUp={() => setDragging(false)}
@@ -220,7 +243,7 @@ export function PlayerShell() {
               className="flex-1 rounded-full"
               style={{
                 height: `${h * 24}px`,
-                backgroundColor: played ? "#f5c842" : "rgba(255,255,255,0.2)",
+                backgroundColor: played ? "#ff7a8a" : "rgba(255,255,255,0.2)",
                 minWidth: "2px",
                 transition: "background-color 80ms, height 80ms"
               }}
@@ -232,7 +255,7 @@ export function PlayerShell() {
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-3 px-3 sm:pb-5 sm:px-6 pointer-events-none">
+    <footer className="w-full z-40 flex justify-center pointer-events-auto shrink-0">
       <audio
         ref={audioRef}
         onTimeUpdate={(e) => setProgress(e.currentTarget.currentTime)}
@@ -281,7 +304,7 @@ export function PlayerShell() {
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 28, stiffness: 220 }}
-                className="pointer-events-auto fixed inset-0 z-50 flex flex-col justify-between select-none text-white overflow-hidden pb-8 px-6 pt-12"
+                className="pointer-events-auto fixed inset-0 z-50 flex flex-col select-none text-white overflow-y-auto pb-8 px-6 pt-12 scrollbar-none"
                 style={{
                   background: `radial-gradient(circle at top, ${currentTrack ? hashColorFromString(currentTrack.title + currentTrack.artist) : "hsl(210, 30%, 8%)"} 0%, #060606 80%)`,
                 }}
@@ -354,7 +377,7 @@ export function PlayerShell() {
                         {/* Buffered progress */}
                         <div className="absolute top-0 bottom-0 left-0 bg-white/10 rounded-full" style={{ width: `${bufferedPercent}%` }} />
                         {/* Active progress */}
-                        <div className="absolute top-0 bottom-0 left-0 bg-[#f5c842] rounded-full" style={{ width: `${pct}%` }} />
+                        <div className="absolute top-0 bottom-0 left-0 bg-[#ff7a8a] rounded-full" style={{ width: `${pct}%` }} />
                       </div>
                       
                       {/* Thumb handle */}
@@ -369,10 +392,10 @@ export function PlayerShell() {
                           className="absolute -top-1.5 -translate-x-1/2 flex items-end gap-[1.5px] h-3.5 pointer-events-none"
                           style={{ left: `${pct}%` }}
                         >
-                          <div className="w-[1.5px] bg-[#f5c842] rounded-full animate-jingle-1 shadow-[0_0_6px_#f5c842b0]" style={{ height: "14px" }} />
-                          <div className="w-[1.5px] bg-[#f5c842] rounded-full animate-jingle-2 shadow-[0_0_6px_#f5c842b0]" style={{ height: "14px" }} />
-                          <div className="w-[1.5px] bg-[#f5c842] rounded-full animate-jingle-3 shadow-[0_0_6px_#f5c842b0]" style={{ height: "14px" }} />
-                          <div className="w-[1.5px] bg-[#f5c842] rounded-full animate-jingle-4 shadow-[0_0_6px_#f5c842b0]" style={{ height: "14px" }} />
+                          <div className="w-[1.5px] bg-[#ff7a8a] rounded-full animate-jingle-1 shadow-[0_0_6px_#ff7a8a50]" style={{ height: "14px" }} />
+                          <div className="w-[1.5px] bg-[#ff7a8a] rounded-full animate-jingle-2 shadow-[0_0_6px_#ff7a8a50]" style={{ height: "14px" }} />
+                          <div className="w-[1.5px] bg-[#ff7a8a] rounded-full animate-jingle-3 shadow-[0_0_6px_#ff7a8a50]" style={{ height: "14px" }} />
+                          <div className="w-[1.5px] bg-[#ff7a8a] rounded-full animate-jingle-4 shadow-[0_0_6px_#ff7a8a50]" style={{ height: "14px" }} />
                         </div>
                       )}
                     </div>
@@ -387,12 +410,12 @@ export function PlayerShell() {
                   <div className="flex items-center justify-between w-full px-4 mt-2">
                     <button
                       onClick={toggleShuffle}
-                      className={`transition p-2 ${shuffle ? "text-[#f5c842]" : "text-gray-400"}`}
+                      className={`transition p-2 ${shuffle ? "text-[#ff7a8a]" : "text-gray-400"}`}
                     >
-                      <Shuffle size={20} className={shuffle ? "filter drop-shadow-[0_0_8px_rgba(245,200,66,0.5)]" : ""} />
+                      <Shuffle size={20} className={shuffle ? "filter drop-shadow-[0_0_8px_rgba(255,122,138,0.5)]" : ""} />
                     </button>
 
-                    <button onClick={playPrevious} className="text-white hover:text-[#f5c842] transition p-2">
+                    <button onClick={playPrevious} className="text-white hover:text-[#ff7a8a] transition p-2">
                       <SkipBack size={26} className="fill-current" />
                     </button>
 
@@ -407,16 +430,62 @@ export function PlayerShell() {
                       )}
                     </button>
 
-                    <button onClick={() => playNext()} className="text-white hover:text-[#f5c842] transition p-2">
+                    <button onClick={() => playNext()} className="text-white hover:text-[#ff7a8a] transition p-2">
                       <SkipForward size={26} className="fill-current" />
                     </button>
 
                     <button
                       onClick={cycleRepeat}
-                      className={`transition p-2 ${repeat !== "off" ? "text-[#f5c842]" : "text-gray-400"}`}
+                      className={`transition p-2 ${repeat !== "off" ? "text-[#ff7a8a]" : "text-gray-400"}`}
                     >
                       {repeat === "one" ? <Repeat1 size={20} /> : <Repeat size={20} />}
                     </button>
+                  </div>
+
+                  {/* Song Community section for this track */}
+                  <div className="w-full flex flex-col gap-4 mt-8 pb-12">
+                    <div className="w-full h-[1px] bg-white/10 my-2" />
+                    
+                    <div className="flex items-center gap-2">
+                      <MessageSquare size={16} className="text-[#ff7a8a]" />
+                      <span className="font-extrabold text-sm text-white">Song Discussion</span>
+                      <span className="text-[10px] text-[#ff7a8a] font-bold uppercase tracking-wider ml-auto">{comments.length} comments</span>
+                    </div>
+                    
+                    {/* Comment input */}
+                    <div className="flex gap-2">
+                      <input 
+                        type="text"
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") handlePostComment(); }}
+                        placeholder="Say something about this track..."
+                        className="flex-1 bg-white/[0.03] border border-white/[0.05] rounded-xl px-3 py-2.5 text-xs outline-none focus:border-[#ff7a8a]/30 transition"
+                      />
+                      <button 
+                        onClick={handlePostComment}
+                        className="px-4 py-1.5 rounded-xl bg-[#ff7a8a] text-black font-extrabold text-xs hover:bg-[#ff9aa6] transition"
+                      >
+                        Post
+                      </button>
+                    </div>
+
+                    {/* Comments list */}
+                    <div className="flex flex-col gap-2 mt-2">
+                      {comments.length === 0 ? (
+                        <p className="text-center text-[10px] text-white/30 py-6">No thoughts shared yet. Be the first!</p>
+                      ) : (
+                        comments.map((comment) => (
+                          <div key={comment.id} className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04] flex flex-col gap-1.5 animate-fadeIn">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-extrabold text-[#ff7a8a]">{comment.user}</span>
+                              <span className="text-[8px] text-white/40">{comment.time}</span>
+                            </div>
+                            <p className="text-[11px] text-white/80 leading-relaxed font-medium">{comment.text}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -450,15 +519,15 @@ export function PlayerShell() {
           </div>
 
           {/* Shuffle */}
-          <button onClick={toggleShuffle} className={`shrink-0 transition hidden md:block ${shuffle ? "text-[#f5c842]" : "text-white/40 hover:text-white"}`}>
+          <button onClick={toggleShuffle} className={`shrink-0 transition hidden md:block ${shuffle ? "text-[#ff7a8a]" : "text-white/40 hover:text-white"}`}>
             <Shuffle size={13} />
           </button>
-
+ 
           {/* ⏮ */}
           <button onClick={playPrevious} className="shrink-0 text-white/60 hover:text-white transition">
             <SkipBack size={15} className="fill-current" />
           </button>
-
+ 
           {/* ▶ */}
           <button
             onClick={togglePlaying}
@@ -467,35 +536,35 @@ export function PlayerShell() {
             style={goldBtn}
           >
             {isPlaying
-              ? <Pause size={15} className="fill-[#1a1a0a] text-[#1a1a0a]" />
-              : <Play  size={15} className="fill-[#1a1a0a] text-[#1a1a0a] ml-0.5" />}
+              ? <Pause size={15} className="fill-[#090a10] text-[#090a10]" />
+              : <Play  size={15} className="fill-[#090a10] text-[#090a10] ml-0.5" />}
           </button>
-
+ 
           {/* ⏭ */}
           <button onClick={() => playNext()} className="shrink-0 text-white/60 hover:text-white transition">
             <SkipForward size={15} className="fill-current" />
           </button>
-
+ 
           {/* Repeat */}
-          <button onClick={cycleRepeat} className={`shrink-0 transition hidden md:block ${repeat !== "off" ? "text-[#f5c842]" : "text-white/40 hover:text-white"}`}>
+          <button onClick={cycleRepeat} className={`shrink-0 transition hidden md:block ${repeat !== "off" ? "text-[#ff7a8a]" : "text-white/40 hover:text-white"}`}>
             {repeat === "one" ? <Repeat1 size={13} /> : <Repeat size={13} />}
           </button>
-
+ 
           {/* Waveform — takes remaining space */}
           <WaveSeek className="flex-1 h-8 mx-1" />
-
+ 
           {/* Time */}
           <span className="text-[9px] md:text-[10px] text-white/40 tabular-nums shrink-0 hidden md:block w-20 text-right">
             {fmt(progress)} / {fmt(totalDur)}
           </span>
-
+ 
           {/* Like */}
           {currentTrack && (
             <button onClick={() => toggleLike(currentTrack.id)} className="shrink-0 text-white/50 hover:text-white transition">
-              {isLiked ? <CheckCircle2 size={14} className="text-[#f5c842]" /> : <Heart size={14} />}
+              {isLiked ? <CheckCircle2 size={14} className="text-[#ff7a8a]" /> : <Heart size={14} />}
             </button>
           )}
-
+ 
           {/* Volume */}
           <div className="flex items-center gap-1.5 shrink-0">
             <button onClick={toggleMute} className="text-white/45 hover:text-white transition">
@@ -506,14 +575,14 @@ export function PlayerShell() {
               value={isMuted ? 0 : volume}
               onChange={(e) => { setIsMuted(false); setVolume(Number(e.target.value)); }}
               className="w-16 md:w-20 h-[3px] rounded-full appearance-none cursor-pointer"
-              style={{ background: `linear-gradient(to right,#f5c842 ${(isMuted?0:volume)*100}%,rgba(255,255,255,0.15) ${(isMuted?0:volume)*100}%)` }}
+              style={{ background: `linear-gradient(to right,#ff7a8a ${(isMuted?0:volume)*100}%,rgba(255,255,255,0.15) ${(isMuted?0:volume)*100}%)` }}
             />
           </div>
         </div>
-
+ 
         {/* Thin progress strip at bottom of card */}
         <div className="h-[3px] w-full bg-white/5">
-          <div className="h-full bg-[#f5c842]/50 transition-all duration-300" style={{ width: `${pct}%` }} />
+          <div className="h-full bg-[#ff7a8a]/50 transition-all duration-300" style={{ width: `${pct}%` }} />
         </div>
       </div>
     </footer>

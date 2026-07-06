@@ -5,7 +5,7 @@ const csp = [
   "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
-  "media-src 'self' data: blob: https://*.googlevideo.com https://rr*.googlevideo.com",
+  "media-src 'self' data: blob: https://*.googlevideo.com",
   "connect-src 'self' https://music.youtube.com https://*.googlevideo.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "frame-ancestors 'none'",
@@ -27,7 +27,8 @@ const nextConfig: NextConfig = {
     ]
   },
   async rewrites() {
-    const backendUrl = process.env.BACKEND || process.env.BACKEND_URL || "http://127.0.0.1:3001";
+    const backendUrl = process.env.BACKEND || "http://127.0.0.1:3001";
+
     const destUrl = backendUrl.endsWith("/") ? backendUrl.slice(0, -1) : backendUrl;
     return [
       {

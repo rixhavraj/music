@@ -1,0 +1,55 @@
+import { getMusicSource } from "@/lib/music-sources";
+import type { Track } from "@/types/music";
+
+// In-memory track catalog cache for recommendations
+let cachedTracks: Track[] = [];
+
+export function getCachedTracks(): Track[] {
+  return cachedTracks;
+}
+
+export function addToCatalogCache(tracks: Track[]) {
+  if (cachedTracks.length < 50) {
+    const seen = new Set(cachedTracks.map((t) => t.id));
+    for (const t of tracks) {
+      if (!seen.has(t.id)) {
+        seen.add(t.id);
+        cachedTracks.push(t);
+      }
+    }
+  }
+}
+
+export async function seedCatalogIfEmpty() {
+  if (cachedTracks.length < 10) {
+    try {
+      const source = getMusicSource();
+      const [t1, t2, t3] = await Promise.all([
+        source.search("Trending Hindi Songs", 20),
+        source.search("Bollywood Pop", 20),
+        source.search("Chill Lo-fi", 10),
+      ]);
+      const all = [...t1, ...t2, ...t3];
+      const seen = new Set<string>();
+      cachedTracks = all.filter((t) => {
+        if (seen.has(t.id)) return false;
+        seen.add(t.id);
+        return true;
+      });
+    } catch (error) {
+      console.error("Error seeding catalog cache:", error);
+      cachedTracks = [];
+    }
+  }
+}
+
+export async function searchTracks(query: string, limit: number): Promise<Track[]> {
+  const tracks = await getMusicSource().search(query, limit);
+  addToCatalogCache(tracks);
+  return tracks;
+}
+
+export async function getTrackById(id: string): Promise<Track | null> {
+  const track = await getMusicSource().getTrack(id);
+  return track || null;
+}
