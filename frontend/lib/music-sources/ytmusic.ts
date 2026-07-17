@@ -92,7 +92,7 @@ export const ytmusicMusicSource: MusicSource = {
   },
 
   // Stream URL extraction is handled by yt-dlp in app/api/stream/[id]/route.ts
-  async getStreamUrl(_id: string) {
+  async getStreamUrl() {
     return null;
   }
 };

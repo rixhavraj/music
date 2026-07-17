@@ -49,14 +49,14 @@ type AppView = "home" | "search" | "settings" | "library" | "hotlist" | "communi
 // ─── Mood definitions ──────────────────────────────────────────────────────────
 
 const MOODS = [
-  { id: "happy",     label: "Happy",     icon: Smile,  color: "#f9a825", query: "happy upbeat songs" },
-  { id: "calm",      label: "Chill",     icon: Coffee, color: "#29b6f6", query: "chill lofi relax" },
-  { id: "energetic", label: "Energetic", icon: Zap,    color: "#ef5350", query: "workout gym motivation" },
-  { id: "focus",     label: "Focus",     icon: Mic2,   color: "#66bb6a", query: "study focus instrumental" },
-  { id: "romantic",  label: "Romantic",  icon: Heart,  color: "#ec407a", query: "romantic love bollywood" },
-  { id: "sleep",     label: "Sleep",     icon: Moon,   color: "#7e57c2", query: "sleep calm meditation" },
-  { id: "party",     label: "Party",     icon: Zap,    color: "#ff7043", query: "party edm dance" },
-  { id: "travel",    label: "Travel",    icon: Radio,  color: "#26a69a", query: "road trip travel songs" },
+  { id: "happy", label: "Happy", icon: Smile, color: "#f9a825", query: "happy upbeat songs" },
+  { id: "calm", label: "Chill", icon: Coffee, color: "#29b6f6", query: "chill lofi relax" },
+  { id: "energetic", label: "Energetic", icon: Zap, color: "#ef5350", query: "workout gym motivation" },
+  { id: "focus", label: "Focus", icon: Mic2, color: "#66bb6a", query: "study focus instrumental" },
+  { id: "romantic", label: "Romantic", icon: Heart, color: "#ec407a", query: "romantic love bollywood" },
+  { id: "sleep", label: "Sleep", icon: Moon, color: "#7e57c2", query: "sleep calm meditation" },
+  { id: "party", label: "Party", icon: Zap, color: "#ff7043", query: "party edm dance" },
+  { id: "travel", label: "Travel", icon: Radio, color: "#26a69a", query: "road trip travel songs" },
 ];
 
 // ─── Dynamic color extraction (simple dominant color from cover hue) ───────────
@@ -292,26 +292,26 @@ export function MusicHome() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#090a10] font-sans text-white select-none">
-      <div className="flex flex-1 overflow-hidden p-3 gap-3">
+    <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#090a10] font-sans text-white select-none">
+      <div className="flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden p-3">
 
         {/* ── Left Sidebar ──────────────────────────────────────────────── */}
-        <aside className="hidden md:flex w-[260px] shrink-0 flex-col gap-3 overflow-hidden h-[calc(100vh-110px)]">
-          
+        <aside className="hidden h-full min-h-0 w-[270px] shrink-0 flex-col overflow-hidden md:flex">
+
           {/* Logo Card */}
-          <div className="rounded-2xl bg-[#141724] border border-white/[0.04] p-5 flex flex-col flex-1">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-[#ff7a8a] to-[#ff9aa6] flex items-center justify-center shadow-lg shadow-[#ff7a8a]/20">
+          <div className="scrollbar-styled flex h-full min-h-0 flex-col overflow-x-hidden overflow-y-auto rounded-2xl border border-white/[0.06] bg-[#141724]/95 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ff7a8a] to-[#ff9aa6] shadow-lg shadow-[#ff7a8a]/25">
                 <span className="text-black font-black text-lg">L</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-white font-black text-lg tracking-tight leading-none">LoFiera</span>
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate text-xl font-black leading-none tracking-tight text-white">LoFiera</span>
                 <span className="text-[9px] text-[#ff7a8a] font-bold tracking-wider uppercase mt-0.5">Feel • Connect • Chill</span>
               </div>
             </div>
 
             {/* Profile widget */}
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04] mb-4 relative group">
+            <div className="relative mb-4 flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3 shadow-inner shadow-white/[0.02] transition hover:bg-white/[0.05]">
               <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#ff7a8a] to-purple-500 relative overflow-hidden shrink-0 border border-white/10">
                 <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('/covers/late-night-study.png')` }} />
                 <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-[#141724]" />
@@ -324,7 +324,7 @@ export function MusicHome() {
             </div>
 
             {/* Navigation links */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex shrink-0 flex-col gap-1.5">
               {[
                 { view: "home", label: "Home", icon: Home },
                 { view: "search", label: "Explore", icon: Compass },
@@ -335,13 +335,26 @@ export function MusicHome() {
                 { view: "community", label: "Community", icon: Users },
               ].map((item) => {
                 const Icon = item.icon;
-                const isActive = appView === item.view || (item.view === "library" && appView === "library" && !selectedPlaylist);
-                
+                const isActive =
+                  item.view === "home"
+                    ? appView === "home" && activeTab === "music" && !selectedPlaylist
+                    : item.view === "radio"
+                      ? appView === "home" && activeTab === "mood" && !selectedPlaylist
+                      : appView === item.view || (item.view === "library" && appView === "library" && !selectedPlaylist);
+
                 return (
                   <button
                     key={item.label}
                     onClick={() => {
-                      if (item.view === "liked") {
+                      if (item.view === "home") {
+                        setSelectedPlaylist(null);
+                        setActiveTab("music");
+                        setAppView("home");
+                      } else if (item.view === "radio") {
+                        setSelectedPlaylist(null);
+                        setActiveTab("mood");
+                        setAppView("home");
+                      } else if (item.view === "liked") {
                         const favs = playlistList.find(p => p.id === "favs");
                         if (favs) setSelectedPlaylist(favs);
                         setAppView("library");
@@ -353,11 +366,10 @@ export function MusicHome() {
                         setAppView(item.view as any);
                       }
                     }}
-                    className={`flex items-center gap-4 py-2.5 px-4 rounded-xl text-sm font-semibold transition ${
-                      isActive 
-                        ? "bg-[#ff7a8a]/10 text-[#ff7a8a] border border-[#ff7a8a]/20 font-bold" 
-                        : "text-[#8b8e9f] hover:text-white hover:bg-white/[0.02]"
-                    }`}
+                    className={`flex items-center gap-4 rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${isActive
+                      ? "border-[#ff7a8a]/25 bg-[#ff7a8a]/12 text-[#ff7a8a] shadow-[0_10px_24px_rgba(255,122,138,0.08)]"
+                      : "border-transparent text-[#a1a6ba] hover:border-white/[0.04] hover:bg-white/[0.035] hover:text-white"
+                      }`}
                   >
                     <Icon size={18} className={isActive ? "text-[#ff7a8a]" : "text-[#8b8e9f]"} />
                     <span>{item.label}</span>
@@ -369,66 +381,108 @@ export function MusicHome() {
             {/* Spacer */}
             <div className="flex-1" />
 
+            {currentTrack && (
+              <div className="mb-3 mt-4 rounded-2xl border border-white/[0.05] bg-[#0d0f1a]/80 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[9px] font-black uppercase tracking-[0.18em] text-[#ff7a8a]">Now Playing</span>
+                  <button
+                    onClick={togglePlaying}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.06] text-white transition hover:bg-white/[0.1]"
+                  >
+                    {isPlaying ? <Pause size={12} className="fill-white" /> : <Play size={12} className="fill-white ml-0.5" />}
+                  </button>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-[#282828]">
+                    <TrackArt src={currentTrack.cover} alt={currentTrack.title} size={44} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-extrabold text-white">{currentTrack.title}</p>
+                    <p className="mt-0.5 truncate text-[10px] font-medium text-white/45">{currentTrack.artist}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Premium Card to fill space */}
-            <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-[#ff7a8a]/10 to-purple-500/5 border border-white/[0.05] flex flex-col gap-3 relative overflow-hidden group">
-              <div className="absolute top-[-50px] right-[-50px] w-24 h-24 bg-[#ff7a8a]/10 rounded-full blur-xl group-hover:scale-150 transition-all duration-700 pointer-events-none" />
-              <h5 className="font-black text-xs text-white tracking-wide">LoFiera Premium</h5>
-              <p className="text-[10px] text-white/50 leading-relaxed font-medium">Unlock high-fidelity audio, smart playlists and ad-free streaming.</p>
-              <button className="w-full py-2 rounded-xl bg-[#ff7a8a] text-black font-black text-[10px] hover:bg-[#ff9aa6] transition tracking-wider uppercase">Upgrade Now</button>
+            <div className="rounded-2xl border border-[#ff7a8a]/15 bg-gradient-to-br from-[#ff7a8a]/16 via-[#221a2b] to-[#141724] p-4 shadow-[0_16px_36px_rgba(0,0,0,0.24)]">
+              <div className="mb-3 flex items-center justify-between">
+                <h5 className="text-xs font-black tracking-wide text-white">LoFiera Premium</h5>
+                <span className="rounded-full bg-emerald-400/10 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-emerald-300">Plus</span>
+              </div>
+              <p className="text-[10px] font-medium leading-relaxed text-white/55">High-fidelity audio, smarter mixes, and ad-free listening.</p>
+              <div className="my-3 grid grid-cols-3 gap-2">
+                {["Hi-Fi", "Radio", "No Ads"].map((label) => (
+                  <span key={label} className="rounded-lg border border-white/[0.05] bg-white/[0.035] px-2 py-1.5 text-center text-[9px] font-bold text-white/65">
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <button className="w-full rounded-xl bg-[#ff7a8a] py-2 text-[10px] font-black uppercase tracking-wider text-black transition hover:bg-[#ff9aa6]">Upgrade Now</button>
             </div>
           </div>
         </aside>
 
         {/* ── Middle Content Wrapper ──────────────────────────────────────── */}
-        <div className="flex-1 flex flex-col gap-3 overflow-hidden h-full">
-          <main className="flex-1 rounded-2xl overflow-y-auto flex flex-col relative transition-all duration-700 bg-[#0d0f1a] border border-white/[0.04]">
-          {/* Header search bar */}
-          <header className="sticky top-0 bg-[#0d0f1a]/85 backdrop-blur-md z-20 px-6 py-4 flex items-center justify-between gap-4 border-b border-white/[0.03]">
-            {appView === "home" && !selectedPlaylist ? (
-              <div className="md:hidden flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-[#ff7a8a] to-purple-500 relative overflow-hidden shrink-0 border border-white/10">
-                  <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('/covers/late-night-study.png')` }} />
+        <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <main className="scrollbar-styled relative flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto rounded-2xl border border-white/[0.06] bg-[#0d0f1a] shadow-[0_24px_70px_rgba(0,0,0,0.28)] transition-all duration-700">
+            {/* Header search bar */}
+            <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-white/[0.04] bg-[#0d0f1a]/90 px-5 py-4 backdrop-blur-xl">
+              {appView === "home" && !selectedPlaylist ? (
+                <div className="md:hidden flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-[#ff7a8a] to-purple-500 relative overflow-hidden shrink-0 border border-white/10">
+                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('/covers/late-night-study.png')` }} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-white font-black text-sm tracking-tight leading-none">LoFiera</span>
+                    <span className="text-[8px] text-[#ff7a8a] font-bold tracking-wider uppercase mt-0.5">Feel • Connect • Chill</span>
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-white font-black text-sm tracking-tight leading-none">LoFiera</span>
-                  <span className="text-[8px] text-[#ff7a8a] font-bold tracking-wider uppercase mt-0.5">Feel • Connect • Chill</span>
+              ) : (
+                <div className="flex items-center gap-2 min-h-[32px]">
+                  {(selectedPlaylist || appView !== "home") && (
+                    <button
+                      onClick={() => {
+                        setSelectedPlaylist(null);
+                        setAppView("home");
+                      }}
+                      className="h-8 w-8 rounded-full bg-black/20 border border-white/[0.05] flex items-center justify-center text-gray-400 hover:text-white transition"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <div className="relative hidden min-w-[260px] max-w-[520px] flex-1 md:block">
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search songs, artists, moods..."
+                  className="h-10 w-full rounded-2xl border border-white/[0.06] bg-white/[0.035] pl-10 pr-4 text-sm font-medium text-white placeholder:text-white/35 transition focus:border-[#ff7a8a]/35 focus:bg-white/[0.055]"
+                />
+              </div>
+
+              <div className="flex shrink-0 items-center gap-3">
+                <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.035] text-gray-300 transition hover:scale-105 hover:text-[#ff7a8a]">
+                  <Bell size={16} />
+                </button>
+                <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-[#ff7a8a] text-xs font-black text-black shadow-lg shadow-[#ff7a8a]/10 transition hover:scale-105">
+                  R
                 </div>
               </div>
-            ) : (
-              <div className="flex items-center gap-2 min-h-[32px]">
-                {(selectedPlaylist || appView !== "home") && (
-                  <button
-                    onClick={() => {
-                      setSelectedPlaylist(null);
-                      setAppView("home");
-                    }}
-                    className="h-8 w-8 rounded-full bg-black/20 border border-white/[0.05] flex items-center justify-center text-gray-400 hover:text-white transition"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                )}
-              </div>
-            )}
-            
-            <div className="flex items-center gap-3">
-              <button className="h-9 w-9 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center hover:scale-105 transition text-gray-300 hover:text-[#ff7a8a]">
-                <Bell size={16} />
-              </button>
-              <div className="h-9 w-9 rounded-xl bg-[#ff7a8a] text-black cursor-pointer hover:scale-105 transition flex items-center justify-center text-xs font-black shadow-lg shadow-[#ff7a8a]/10">
-                R
-              </div>
-            </div>
-          </header>
+            </header>
 
-          {/* Body */}
-          <div className="px-6 py-6 pb-40 flex flex-col gap-7">
+            {/* Body */}
+            <div className="flex flex-col gap-7 px-5 py-5 pb-40 md:px-8 md:py-7">
 
-            {/* View-specific content */}
-            {appView === "search" ? (
-              <SearchPanelV2 onPlay={(track, queue) => play(track, queue || tracks)} />
-            ) : appView === "settings" ? (
-              <SettingsPanelV2 />
-            ) : appView === "library" && selectedPlaylist ? (
+              {/* View-specific content */}
+              {appView === "search" ? (
+                <SearchPanelV2 onPlay={(track, queue) => play(track, queue || tracks)} />
+              ) : appView === "settings" ? (
+                <SettingsPanelV2 />
+              ) : appView === "library" && selectedPlaylist ? (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -461,7 +515,7 @@ export function MusicHome() {
                       <p className="text-sm text-white/70 font-medium max-w-xl leading-relaxed">
                         {selectedPlaylist.desc}
                       </p>
-                      
+
                       <div className="flex items-center justify-center md:justify-start gap-2 text-xs text-white/45 mt-1 font-semibold">
                         <span className="text-white/80">LoFiera</span>
                         <span>•</span>
@@ -519,337 +573,295 @@ export function MusicHome() {
                     </div>
 
                     <div className="flex flex-col gap-1 mt-2">
-                        {selectedPlaylist.tracks.map((track: Track, i: number) => {
-                          const isCurrent = currentTrack?.id === track.id;
-                          return (
-                            <div
-                              key={track.id}
-                              onClick={() => play(track, selectedPlaylist.tracks)}
-                              className={`flex items-center gap-4 py-3 px-4 rounded-[16px] cursor-pointer hover:bg-white/5 group transition ${
-                                isCurrent ? "bg-white/[0.04] border border-white/5" : "border border-transparent"
+                      {selectedPlaylist.tracks.map((track: Track, i: number) => {
+                        const isCurrent = currentTrack?.id === track.id;
+                        return (
+                          <div
+                            key={track.id}
+                            onClick={() => play(track, selectedPlaylist.tracks)}
+                            className={`flex items-center gap-4 py-3 px-4 rounded-[16px] cursor-pointer hover:bg-white/5 group transition ${isCurrent ? "bg-white/[0.04] border border-white/5" : "border border-transparent"
                               }`}
-                            >
-                              <div className="w-8 text-center text-xs font-semibold text-white/45">
-                                {isCurrent && isPlaying ? (
-                                  <div className="flex justify-center items-end gap-0.5 h-3.5 w-full">
-                                    <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_100ms]" style={{ height: "60%" }} />
-                                    <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_300ms]" style={{ height: "100%" }} />
-                                    <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_500ms]" style={{ height: "40%" }} />
-                                  </div>
-                                ) : (
-                                  String(i + 1).padStart(2, "0")
-                                )}
-                              </div>
-
-                              <div className="h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-[#282828] border border-white/5 shadow-md">
-                                <TrackArt src={track.cover} alt={track.title} size={48} />
-                              </div>
-
-                              <div className="min-w-0 flex-1">
-                                <h4 className={`truncate font-bold text-sm transition ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
-                                  {track.title}
-                                </h4>
-                                <p className="truncate text-xs text-white/50 mt-0.5 font-medium">{track.artist}</p>
-                              </div>
-
-                              <span className="text-xs text-white/45 font-semibold tabular-nums hidden sm:block shrink-0 w-24 text-right">
-                                {formatDuration(track.duration)}
-                              </span>
-
-                              <div className="w-10 flex justify-end">
-                                <button className="text-white/40 hover:text-white transition p-1.5 rounded-full hover:bg-white/5 opacity-0 group-hover:opacity-100">
-                                  <MoreHorizontal size={18} />
-                                </button>
-                              </div>
+                          >
+                            <div className="w-8 text-center text-xs font-semibold text-white/45">
+                              {isCurrent && isPlaying ? (
+                                <div className="flex justify-center items-end gap-0.5 h-3.5 w-full">
+                                  <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_100ms]" style={{ height: "60%" }} />
+                                  <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_300ms]" style={{ height: "100%" }} />
+                                  <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_500ms]" style={{ height: "40%" }} />
+                                </div>
+                              ) : (
+                                String(i + 1).padStart(2, "0")
+                              )}
                             </div>
-                          );
-                        })}
+
+                            <div className="h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-[#282828] border border-white/5 shadow-md">
+                              <TrackArt src={track.cover} alt={track.title} size={48} />
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <h4 className={`truncate font-bold text-sm transition ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
+                                {track.title}
+                              </h4>
+                              <p className="truncate text-xs text-white/50 mt-0.5 font-medium">{track.artist}</p>
+                            </div>
+
+                            <span className="text-xs text-white/45 font-semibold tabular-nums hidden sm:block shrink-0 w-24 text-right">
+                              {formatDuration(track.duration)}
+                            </span>
+
+                            <div className="w-10 flex justify-end">
+                              <button className="text-white/40 hover:text-white transition p-1.5 rounded-full hover:bg-white/5 opacity-0 group-hover:opacity-100">
+                                <MoreHorizontal size={18} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </motion.div>
-            ) : appView === "hotlist" ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col gap-6"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
-                    <Flame size={24} className="fill-current" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-2xl">Hotlist</h3>
-                    <p className="text-sm text-gray-400">Trending tracks and popular hits updated hourly</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col divide-y divide-white/5">
-                  {tracks.slice(0, 15).map((track, i) => {
-                    const isCurrent = currentTrack?.id === track.id;
-                    return (
-                      <div
-                        key={track.id}
-                        onClick={() => play(track, tracks)}
-                        className={`flex items-center gap-4 py-3 px-2 rounded-xl cursor-pointer hover:bg-white/5 group transition ${isCurrent ? "bg-white/5" : ""}`}
-                      >
-                        <div className="w-6 text-center text-xs font-semibold text-gray-500">
-                          {isCurrent && isPlaying ? (
-                            <div className="flex justify-center items-end gap-0.5 h-3.5 w-full">
-                              <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_100ms]" style={{ height: "60%" }} />
-                              <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_300ms]" style={{ height: "100%" }} />
-                              <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_500ms]" style={{ height: "40%" }} />
-                            </div>
-                          ) : (
-                            String(i + 1).padStart(2, "0")
-                          )}
-                        </div>
-                        <div className="h-11 w-11 rounded-lg overflow-hidden shrink-0 bg-[#282828]">
-                          <TrackArt src={track.cover} alt={track.title} size={44} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className={`truncate font-semibold text-sm transition ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
-                            {track.title}
-                          </h4>
-                          <p className="truncate text-xs text-gray-400 mt-0.5">{track.artist} · {track.album}</p>
-                        </div>
-                        <span className="text-xs text-gray-500 font-medium tabular-nums hidden sm:block shrink-0">
-                          {formatDuration(track.duration)}
-                        </span>
-                        <button className="text-gray-500 hover:text-white transition p-1.5">
-                          <MoreHorizontal size={18} />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            ) : appView === "community" ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col gap-6"
-              >
-                <div className="flex items-center justify-between border-b border-white/[0.04] pb-3">
-                  <h3 className="font-black text-2xl text-white">Community</h3>
-                </div>
-
-                {/* Input card */}
-                <div className="p-4 rounded-2xl bg-[#141724] border border-white/[0.04] flex flex-col gap-3">
-                  <div className="flex items-start gap-2.5">
-                    <div className="h-8 w-8 rounded-full bg-[#ff7a8a]/20 border border-[#ff7a8a]/10 relative overflow-hidden shrink-0">
-                      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('/covers/late-night-study.png')` }} />
-                    </div>
-                    <textarea 
-                      className="bg-transparent text-xs w-full outline-none text-white placeholder-[#8b8e9f] resize-none h-12 py-1"
-                      placeholder="Share your thoughts..."
-                    />
-                  </div>
-                  <div className="flex items-center justify-between border-t border-white/[0.04] pt-2.5">
-                    <div className="flex items-center gap-3 text-[#8b8e9f]">
-                      <button className="hover:text-[#ff7a8a] transition"><ImageIcon size={16} /></button>
-                      <button className="hover:text-[#ff7a8a] transition"><MusicIcon size={16} /></button>
-                      <button className="hover:text-[#ff7a8a] transition"><BarChart2 size={16} /></button>
-                    </div>
-                    <button className="px-4 py-1.5 rounded-xl bg-[#ff7a8a] text-black font-black text-xs hover:bg-[#ff9aa6] transition">Post</button>
-                  </div>
-                </div>
-
-                {/* Posts Feed */}
-                <div className="flex flex-col gap-4">
-                  {/* Feed post 1 */}
-                  <div className="p-4 rounded-2xl bg-[#141724] border border-white/[0.04] flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-full bg-indigo-500 overflow-hidden shrink-0 border border-white/10" style={{ backgroundImage: `url('/covers/coffee-lofi.png')`, backgroundSize: "cover" }} />
-                        <div>
-                          <h5 className="text-xs font-bold text-white leading-tight">SakuraMelody</h5>
-                          <span className="text-[9px] text-[#8b8e9f]">2h ago</span>
-                        </div>
-                      </div>
-                      <button className="text-[#8b8e9f] hover:text-white transition">···</button>
-                    </div>
-                    <p className="text-xs text-white/80 leading-relaxed">
-                      This lofi track hits different when it rains 🌧 What's your go-to rain lofi?
-                    </p>
-                    
-                    {/* Embedded Song card */}
-                    <div className="flex items-center gap-3.5 p-2 rounded-2xl bg-white/[0.02] border border-white/[0.04] group transition duration-300">
-                      <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-[#282828] shadow-md">
-                        <TrackArt src="/covers/rainy-day-lofi.png" alt="night rain" size={48} />
-                        <div 
-                          onClick={() => {
-                            const lofi = playlistList.find(p => p.id === "rainy");
-                            if (lofi && lofi.tracks.length > 0) play(lofi.tracks[0], lofi.tracks);
-                          }}
-                          className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer transition hover:bg-black/60"
-                        >
-                          <Play size={14} className="fill-white text-white ml-0.5" />
-                        </div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h6 className="text-[12px] font-extrabold text-white truncate leading-tight">night rain</h6>
-                        <span className="text-[10px] text-white/50 block mt-1 font-medium">by kupla</span>
-                      </div>
-                      <span className="text-[10px] text-white/40 shrink-0 font-bold pr-2 tabular-nums">2:45</span>
-                    </div>
-
-                    <div className="flex items-center gap-4 text-xs text-[#8b8e9f] mt-1 font-semibold">
-                      <button className="flex items-center gap-1 hover:text-red-400 transition"><Heart size={14} /> 128</button>
-                      <button className="flex items-center gap-1 hover:text-[#ff7a8a] transition"><MessageSquare size={14} /> 32</button>
-                    </div>
-                  </div>
-
-                  {/* Feed post 2 */}
-                  <div className="p-4 rounded-2xl bg-[#141724] border border-white/[0.04] flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-full bg-emerald-500 overflow-hidden shrink-0 border border-white/10" style={{ backgroundImage: `url('/covers/late-night-study.png')`, backgroundSize: "cover" }} />
-                        <div>
-                          <h5 className="text-xs font-bold text-white leading-tight">LofiClouds</h5>
-                          <span className="text-[9px] text-[#8b8e9f]">5h ago</span>
-                        </div>
-                      </div>
-                      <button className="text-[#8b8e9f] hover:text-white transition">···</button>
-                    </div>
-                    <p className="text-xs text-white/80 leading-relaxed">
-                      Just finished my exams! LoFi and freedom feels so good right now ☁✨
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-[#8b8e9f] mt-1 font-semibold">
-                      <button className="flex items-center gap-1 hover:text-red-400 transition"><Heart size={14} /> 96</button>
-                      <button className="flex items-center gap-1 hover:text-[#ff7a8a] transition"><MessageSquare size={14} /> 18</button>
-                    </div>
-                  </div>
-
-                  {/* Who to Follow */}
-                  <div className="p-4 rounded-2xl bg-[#141724] border border-white/[0.04] flex flex-col gap-3">
-                    <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#ff7a8a]">Who to Follow</span>
-                    <div className="flex flex-col gap-3">
-                      {[
-                        { name: "ChillVibes", handle: "@chillvibes", avatar: "/covers/sunset-drive.png", followers: "1.2K followers" },
-                        { name: "LofiGirl", handle: "@lofigirl", avatar: "/covers/late-night-study.png", followers: "3.4K followers" },
-                        { name: "NightOwl", handle: "@nightowl", avatar: "/covers/sleepless-nights.png", followers: "2.1K followers" },
-                      ].map((user) => (
-                        <div key={user.handle} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="h-8 w-8 rounded-full bg-[#ff7a8a]/20 overflow-hidden shrink-0 border border-white/10" style={{ backgroundImage: `url(${user.avatar})`, backgroundSize: "cover" }} />
-                            <div className="min-w-0">
-                              <h6 className="text-xs font-bold text-white truncate leading-tight">{user.name}</h6>
-                              <span className="text-[9px] text-[#8b8e9f] truncate block mt-0.5">{user.followers}</span>
-                            </div>
-                          </div>
-                          <button className="px-3 py-1 rounded-lg bg-[#ff7a8a] text-black font-extrabold text-[10px] hover:bg-[#ff9aa6] transition">Follow</button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <>
-                <div className="flex gap-2">
-                  {(["music", "mood"] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-bold transition capitalize ${
-                        activeTab === tab ? "bg-[#ff7a8a] text-black" : "bg-[#232323] hover:bg-[#2a2a2a] text-white"
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-
-            <AnimatePresence mode="wait">
-              {debouncedSearch.length > 0 ? (
+              ) : appView === "hotlist" ? (
                 <motion.div
-                  key="search"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col gap-6"
                 >
-                  <h3 className="font-bold text-xl mb-4">
-                    Results for &ldquo;{debouncedSearch}&rdquo;
-                  </h3>
-                  {searchQueryResult.isLoading ? (
-                    <div className="grid gap-3">
-                      {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="h-16 animate-pulse rounded bg-white/5" />
-                      ))}
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
+                      <Flame size={24} className="fill-current" />
                     </div>
-                  ) : (
-                    <div className="grid gap-2">
-                      {searchTracks.map((track, i) => (
-                        <motion.div
+                    <div>
+                      <h3 className="font-bold text-2xl">Hotlist</h3>
+                      <p className="text-sm text-gray-400">Trending tracks and popular hits updated hourly</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col divide-y divide-white/5">
+                    {tracks.slice(0, 15).map((track, i) => {
+                      const isCurrent = currentTrack?.id === track.id;
+                      return (
+                        <div
                           key={track.id}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.03 }}
-                          onClick={() => play(track, searchTracks)}
-                          className="flex items-center gap-3 p-2 rounded-md hover:bg-white/5 cursor-pointer transition group"
+                          onClick={() => play(track, tracks)}
+                          className={`flex items-center gap-4 py-3 px-2 rounded-xl cursor-pointer hover:bg-white/5 group transition ${isCurrent ? "bg-white/5" : ""}`}
                         >
-                          <span className="w-5 text-center text-xs text-gray-500 group-hover:hidden">{i + 1}</span>
-                          <Play size={14} className="fill-white text-white hidden group-hover:block shrink-0" />
-                          <div className="h-12 w-12 shrink-0 rounded overflow-hidden bg-[#282828]">
-                            <TrackArt src={track.cover} alt={track.title} size={48} />
+                          <div className="w-6 text-center text-xs font-semibold text-gray-500">
+                            {isCurrent && isPlaying ? (
+                              <div className="flex justify-center items-end gap-0.5 h-3.5 w-full">
+                                <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_100ms]" style={{ height: "60%" }} />
+                                <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_300ms]" style={{ height: "100%" }} />
+                                <div className="w-0.5 bg-[#ff7a8a] animate-[bounce_0.8s_infinite_500ms]" style={{ height: "40%" }} />
+                              </div>
+                            ) : (
+                              String(i + 1).padStart(2, "0")
+                            )}
+                          </div>
+                          <div className="h-11 w-11 rounded-lg overflow-hidden shrink-0 bg-[#282828]">
+                            <TrackArt src={track.cover} alt={track.title} size={44} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h5 className="truncate font-semibold text-sm group-hover:text-[#ff7a8a] transition">{track.title}</h5>
-                            <p className="truncate text-xs text-[#b3b3b3]">{track.artist} · {track.album}</p>
+                            <h4 className={`truncate font-semibold text-sm transition ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
+                              {track.title}
+                            </h4>
+                            <p className="truncate text-xs text-gray-400 mt-0.5">{track.artist} · {track.album}</p>
                           </div>
-                          {track.mood && (
-                            <span className="bg-white/10 text-xs text-gray-300 px-2 py-0.5 rounded-full capitalize shrink-0">{track.mood}</span>
-                          )}
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-
-              ) : activeMood ? (
-                <motion.div
-                  key={`mood-${activeMood}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {(() => {
-                    const mood = MOODS.find((m) => m.id === activeMood)!;
-                    const Icon = mood.icon;
-                    return (
-                      <>
-                        <div className="flex items-center gap-3 mb-6">
-                          <div className="h-12 w-12 rounded-full flex items-center justify-center" style={{ background: mood.color }}>
-                            <Icon size={22} className="text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-2xl">{mood.label} Mix</h3>
-                            <p className="text-sm text-gray-400">Music to match your mood</p>
-                          </div>
-                          <button
-                            onClick={() => setActiveMood(null)}
-                            className="ml-auto text-xs text-gray-400 hover:text-white border border-white/20 hover:border-white px-3 py-1 rounded-full transition"
-                          >
-                            ✕ Close
+                          <span className="text-xs text-gray-500 font-medium tabular-nums hidden sm:block shrink-0">
+                            {formatDuration(track.duration)}
+                          </span>
+                          <button className="text-gray-500 hover:text-white transition p-1.5">
+                            <MoreHorizontal size={18} />
                           </button>
                         </div>
-                        {moodQuery.isLoading ? (
-                           <div className="grid gap-3">
-                             {Array.from({ length: 8 }).map((_, i) => (
-                               <div key={i} className="h-16 animate-pulse rounded bg-white/5" />
-                             ))}
-                           </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              ) : appView === "community" ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col gap-6"
+                >
+                  <div className="flex items-center justify-between border-b border-white/[0.04] pb-3">
+                    <h3 className="font-black text-2xl text-white">Community</h3>
+                  </div>
+
+                  {/* Input card */}
+                  <div className="p-4 rounded-2xl bg-[#141724] border border-white/[0.04] flex flex-col gap-3">
+                    <div className="flex items-start gap-2.5">
+                      <div className="h-8 w-8 rounded-full bg-[#ff7a8a]/20 border border-[#ff7a8a]/10 relative overflow-hidden shrink-0">
+                        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('/covers/late-night-study.png')` }} />
+                      </div>
+                      <textarea
+                        className="bg-transparent text-xs w-full outline-none text-white placeholder-[#8b8e9f] resize-none h-12 py-1"
+                        placeholder="Share your thoughts..."
+                      />
+                    </div>
+                    <div className="flex items-center justify-between border-t border-white/[0.04] pt-2.5">
+                      <div className="flex items-center gap-3 text-[#8b8e9f]">
+                        <button className="hover:text-[#ff7a8a] transition"><ImageIcon size={16} /></button>
+                        <button className="hover:text-[#ff7a8a] transition"><MusicIcon size={16} /></button>
+                        <button className="hover:text-[#ff7a8a] transition"><BarChart2 size={16} /></button>
+                      </div>
+                      <button className="px-4 py-1.5 rounded-xl bg-[#ff7a8a] text-black font-black text-xs hover:bg-[#ff9aa6] transition">Post</button>
+                    </div>
+                  </div>
+
+                  {/* Posts Feed */}
+                  <div className="flex flex-col gap-4">
+                    {/* Feed post 1 */}
+                    <div className="p-4 rounded-2xl bg-[#141724] border border-white/[0.04] flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-8 w-8 rounded-full bg-indigo-500 overflow-hidden shrink-0 border border-white/10" style={{ backgroundImage: `url('/covers/coffee-lofi.png')`, backgroundSize: "cover" }} />
+                          <div>
+                            <h5 className="text-xs font-bold text-white leading-tight">SakuraMelody</h5>
+                            <span className="text-[9px] text-[#8b8e9f]">2h ago</span>
+                          </div>
+                        </div>
+                        <button className="text-[#8b8e9f] hover:text-white transition">···</button>
+                      </div>
+                      <p className="text-xs text-white/80 leading-relaxed">
+                        This lofi track hits different when it rains 🌧 What's your go-to rain lofi?
+                      </p>
+
+                      {/* Embedded Song card */}
+                      <div className="flex items-center gap-3.5 p-2 rounded-2xl bg-white/[0.02] border border-white/[0.04] group transition duration-300">
+                        <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-[#282828] shadow-md">
+                          <TrackArt src="/covers/rainy-day-lofi.png" alt="night rain" size={48} />
+                          <div
+                            onClick={() => {
+                              const lofi = playlistList.find(p => p.id === "rainy");
+                              if (lofi && lofi.tracks.length > 0) play(lofi.tracks[0], lofi.tracks);
+                            }}
+                            className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer transition hover:bg-black/60"
+                          >
+                            <Play size={14} className="fill-white text-white ml-0.5" />
+                          </div>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h6 className="text-[12px] font-extrabold text-white truncate leading-tight">night rain</h6>
+                          <span className="text-[10px] text-white/50 block mt-1 font-medium">by kupla</span>
+                        </div>
+                        <span className="text-[10px] text-white/40 shrink-0 font-bold pr-2 tabular-nums">2:45</span>
+                      </div>
+
+                      <div className="flex items-center gap-4 text-xs text-[#8b8e9f] mt-1 font-semibold">
+                        <button className="flex items-center gap-1 hover:text-red-400 transition"><Heart size={14} /> 128</button>
+                        <button className="flex items-center gap-1 hover:text-[#ff7a8a] transition"><MessageSquare size={14} /> 32</button>
+                      </div>
+                    </div>
+
+                    {/* Feed post 2 */}
+                    <div className="p-4 rounded-2xl bg-[#141724] border border-white/[0.04] flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-8 w-8 rounded-full bg-emerald-500 overflow-hidden shrink-0 border border-white/10" style={{ backgroundImage: `url('/covers/late-night-study.png')`, backgroundSize: "cover" }} />
+                          <div>
+                            <h5 className="text-xs font-bold text-white leading-tight">LofiClouds</h5>
+                            <span className="text-[9px] text-[#8b8e9f]">5h ago</span>
+                          </div>
+                        </div>
+                        <button className="text-[#8b8e9f] hover:text-white transition">···</button>
+                      </div>
+                      <p className="text-xs text-white/80 leading-relaxed">
+                        Just finished my exams! LoFi and freedom feels so good right now ☁✨
+                      </p>
+                      <div className="flex items-center gap-4 text-xs text-[#8b8e9f] mt-1 font-semibold">
+                        <button className="flex items-center gap-1 hover:text-red-400 transition"><Heart size={14} /> 96</button>
+                        <button className="flex items-center gap-1 hover:text-[#ff7a8a] transition"><MessageSquare size={14} /> 18</button>
+                      </div>
+                    </div>
+
+                    {/* Who to Follow */}
+                    <div className="p-4 rounded-2xl bg-[#141724] border border-white/[0.04] flex flex-col gap-3">
+                      <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#ff7a8a]">Who to Follow</span>
+                      <div className="flex flex-col gap-3">
+                        {[
+                          { name: "ChillVibes", handle: "@chillvibes", avatar: "/covers/sunset-drive.png", followers: "1.2K followers" },
+                          { name: "LofiGirl", handle: "@lofigirl", avatar: "/covers/late-night-study.png", followers: "3.4K followers" },
+                          { name: "NightOwl", handle: "@nightowl", avatar: "/covers/sleepless-nights.png", followers: "2.1K followers" },
+                        ].map((user) => (
+                          <div key={user.handle} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="h-8 w-8 rounded-full bg-[#ff7a8a]/20 overflow-hidden shrink-0 border border-white/10" style={{ backgroundImage: `url(${user.avatar})`, backgroundSize: "cover" }} />
+                              <div className="min-w-0">
+                                <h6 className="text-xs font-bold text-white truncate leading-tight">{user.name}</h6>
+                                <span className="text-[9px] text-[#8b8e9f] truncate block mt-0.5">{user.followers}</span>
+                              </div>
+                            </div>
+                            <button className="px-3 py-1 rounded-lg bg-[#ff7a8a] text-black font-extrabold text-[10px] hover:bg-[#ff9aa6] transition">Follow</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#ff7a8a]">Welcome back</p>
+                      <h1 className="mt-1 text-2xl font-black tracking-tight text-white md:text-3xl">Your music room</h1>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex rounded-2xl border border-white/[0.06] bg-white/[0.035] p-1">
+                        {(["music", "mood"] as const).map((tab) => (
+                          <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`flex h-9 items-center gap-2 rounded-xl px-4 text-sm font-black capitalize transition ${activeTab === tab ? "bg-[#ff7a8a] text-black shadow-lg shadow-[#ff7a8a]/15" : "text-white/60 hover:text-white"
+                              }`}
+                          >
+                            {tab === "music" ? <MusicIcon size={15} /> : <Radio size={15} />}
+                            {tab}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="hidden items-center gap-2 xl:flex">
+                        {[
+                          { label: "Liked", value: likedIds.length, tone: "text-rose-300" },
+                          { label: "Recent", value: recentlyPlayed.length, tone: "text-sky-300" },
+                          { label: "Queue", value: Math.max(tracks.length, globalHits.length), tone: "text-emerald-300" },
+                        ].map((stat) => (
+                          <div key={stat.label} className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-2">
+                            <p className={`text-sm font-black ${stat.tone}`}>{stat.value}</p>
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-white/35">{stat.label}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <AnimatePresence mode="wait">
+                    {debouncedSearch.length > 0 ? (
+                      <motion.div
+                        key="search"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <h3 className="font-bold text-xl mb-4">
+                          Results for &ldquo;{debouncedSearch}&rdquo;
+                        </h3>
+                        {searchQueryResult.isLoading ? (
+                          <div className="grid gap-3">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                              <div key={i} className="h-16 animate-pulse rounded bg-white/5" />
+                            ))}
+                          </div>
                         ) : (
                           <div className="grid gap-2">
-                            {moodTracks.map((track, i) => (
+                            {searchTracks.map((track, i) => (
                               <motion.div
                                 key={track.id}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: i * 0.04 }}
-                                onClick={() => play(track, moodTracks)}
+                                transition={{ delay: i * 0.03 }}
+                                onClick={() => play(track, searchTracks)}
                                 className="flex items-center gap-3 p-2 rounded-md hover:bg-white/5 cursor-pointer transition group"
                               >
                                 <span className="w-5 text-center text-xs text-gray-500 group-hover:hidden">{i + 1}</span>
@@ -859,347 +871,477 @@ export function MusicHome() {
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <h5 className="truncate font-semibold text-sm group-hover:text-[#ff7a8a] transition">{track.title}</h5>
-                                  <p className="truncate text-xs text-[#b3b3b3]">{track.artist}</p>
+                                  <p className="truncate text-xs text-[#b3b3b3]">{track.artist} · {track.album}</p>
                                 </div>
+                                {track.mood && (
+                                  <span className="bg-white/10 text-xs text-gray-300 px-2 py-0.5 rounded-full capitalize shrink-0">{track.mood}</span>
+                                )}
                               </motion.div>
                             ))}
                           </div>
                         )}
-                      </>
-                    );
-                  })()}
-                </motion.div>
+                      </motion.div>
 
-              ) : (
-                <motion.div
-                  key="home"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex flex-col gap-7"
-                >
-                  {/* Hero Banner inside home dashboard with Carousel Animation */}
-                  {activeTab === "music" && (
-                    <div className="relative h-64 rounded-3xl overflow-hidden border border-white/[0.05] shadow-2xl group bg-[#060813]">
-                      <AnimatePresence mode="wait">
-                        {HERO_SLIDES.map((slide, index) => {
-                          if (index !== currentHeroSlide) return null;
+                    ) : activeMood ? (
+                      <motion.div
+                        key={`mood-${activeMood}`}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {(() => {
+                          const mood = MOODS.find((m) => m.id === activeMood)!;
+                          const Icon = mood.icon;
                           return (
-                            <motion.div
-                              key={slide.id}
-                              initial={{ opacity: 0, x: 20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: -20 }}
-                              transition={{ duration: 0.5, ease: "easeInOut" }}
-                              className="absolute inset-0 p-8 flex flex-col justify-between bg-cover bg-center"
-                              style={{ backgroundImage: `url('${slide.bg}')` }}
-                            >
-                              <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
-                              
-                              <div className="z-10 flex flex-col gap-2 max-w-md">
-                                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-extrabold uppercase tracking-wider text-[#ff7a8a] w-fit">
-                                  {slide.tagline}
+                            <>
+                              <div className="flex items-center gap-3 mb-6">
+                                <div className="h-12 w-12 rounded-full flex items-center justify-center" style={{ background: mood.color }}>
+                                  <Icon size={22} className="text-white" />
                                 </div>
-                                <h2 className="text-3xl font-black text-white mt-1 leading-tight tracking-tight animate-slideDown">
-                                  {slide.title}<span className="text-[#ff7a8a]">{slide.highlightWord}</span>
-                                </h2>
-                                <p className="text-xs text-white/70 font-medium leading-relaxed mt-1">
-                                  {slide.desc}
+                                <div>
+                                  <h3 className="font-bold text-2xl">{mood.label} Mix</h3>
+                                  <p className="text-sm text-gray-400">Music to match your mood</p>
+                                </div>
+                                <button
+                                  onClick={() => setActiveMood(null)}
+                                  className="ml-auto text-xs text-gray-400 hover:text-white border border-white/20 hover:border-white px-3 py-1 rounded-full transition"
+                                >
+                                  ✕ Close
+                                </button>
+                              </div>
+                              {moodQuery.isLoading ? (
+                                <div className="grid gap-3">
+                                  {Array.from({ length: 8 }).map((_, i) => (
+                                    <div key={i} className="h-16 animate-pulse rounded bg-white/5" />
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="grid gap-2">
+                                  {moodTracks.map((track, i) => (
+                                    <motion.div
+                                      key={track.id}
+                                      initial={{ opacity: 0, x: -10 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ delay: i * 0.04 }}
+                                      onClick={() => play(track, moodTracks)}
+                                      className="flex items-center gap-3 p-2 rounded-md hover:bg-white/5 cursor-pointer transition group"
+                                    >
+                                      <span className="w-5 text-center text-xs text-gray-500 group-hover:hidden">{i + 1}</span>
+                                      <Play size={14} className="fill-white text-white hidden group-hover:block shrink-0" />
+                                      <div className="h-12 w-12 shrink-0 rounded overflow-hidden bg-[#282828]">
+                                        <TrackArt src={track.cover} alt={track.title} size={48} />
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <h5 className="truncate font-semibold text-sm group-hover:text-[#ff7a8a] transition">{track.title}</h5>
+                                        <p className="truncate text-xs text-[#b3b3b3]">{track.artist}</p>
+                                      </div>
+                                    </motion.div>
+                                  ))}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </motion.div>
+
+                    ) : (
+                      <motion.div
+                        key="home"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-col gap-7"
+                      >
+                        {/* Hero Banner inside home dashboard with Carousel Animation */}
+                        {activeTab === "music" && (
+                          <div className="group relative h-[300px] overflow-hidden rounded-3xl border border-white/[0.06] bg-[#060813] shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+                            <AnimatePresence mode="wait">
+                              {HERO_SLIDES.map((slide, index) => {
+                                if (index !== currentHeroSlide) return null;
+                                return (
+                                  <motion.div
+                                    key={slide.id}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                                    className="absolute inset-0 flex flex-col justify-between bg-cover bg-center p-6 md:p-8"
+                                    style={{ backgroundImage: `url('${slide.bg}')` }}
+                                  >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/45 to-black/10" />
+
+                                    <div className="z-10 flex flex-col gap-2 max-w-md">
+                                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-extrabold uppercase tracking-wider text-[#ff7a8a] w-fit">
+                                        {slide.tagline}
+                                      </div>
+                                      <h2 className="mt-1 text-3xl font-black leading-tight tracking-tight text-white md:text-5xl">
+                                        {slide.title}<span className="text-[#ff7a8a]">{slide.highlightWord}</span>
+                                      </h2>
+                                      <p className="text-xs text-white/70 font-medium leading-relaxed mt-1">
+                                        {slide.desc}
+                                      </p>
+                                    </div>
+
+                                    <div className="z-10 flex items-center justify-between w-full">
+                                      <div className="flex items-center gap-3">
+                                        <button
+                                          onClick={() => {
+                                            const lofi = playlistList.find(p => p.id === slide.playlistId);
+                                            if (lofi && lofi.tracks.length > 0) play(lofi.tracks[0], lofi.tracks);
+                                          }}
+                                          className="h-10 px-6 rounded-xl bg-[#ff7a8a] text-black font-bold text-xs flex items-center gap-2 hover:bg-[#ff9aa6] transition hover:scale-105 active:scale-95 shadow-lg shadow-[#ff7a8a]/20"
+                                        >
+                                          <Play size={14} className="fill-black text-black ml-0.5" />
+                                          Play Mix
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            const lofi = playlistList.find(p => p.id === slide.playlistId);
+                                            if (lofi && lofi.tracks.length > 0) {
+                                              const { toggleShuffle } = usePlayerStore.getState();
+                                              toggleShuffle();
+                                              play(lofi.tracks[Math.floor(Math.random() * lofi.tracks.length)], lofi.tracks);
+                                            }
+                                          }}
+                                          className="h-10 px-6 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold text-xs flex items-center gap-2 transition hover:scale-105 active:scale-95 backdrop-blur-md"
+                                        >
+                                          <Shuffle size={14} />
+                                          Shuffle
+                                        </button>
+                                      </div>
+
+                                      {/* Slider Indicator Dots */}
+                                      <div className="flex items-center gap-1.5 pb-1">
+                                        {HERO_SLIDES.map((_, dotIdx) => (
+                                          <button
+                                            key={dotIdx}
+                                            onClick={() => setCurrentHeroSlide(dotIdx)}
+                                            className={`h-1.5 rounded-full transition-all duration-300 ${dotIdx === currentHeroSlide ? "w-6 bg-[#ff7a8a]" : "w-1.5 bg-white/30 hover:bg-white/50"
+                                              }`}
+                                          />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                );
+                              })}
+                            </AnimatePresence>
+                          </div>
+                        )}
+
+                        {/* Trending Hindi Songs */}
+                        {activeTab === "music" && (
+                          <div className="hidden md:block">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="font-black text-lg text-white">Trending Hindi Songs</h3>
+                            </div>
+                            {trendingQuery.isLoading ? (
+                              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6">
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                  <div key={i} className="h-44 animate-pulse rounded-2xl bg-white/5" />
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6">
+                                {tracks.slice(0, 12).map((track) => {
+                                  const isCurrent = currentTrack?.id === track.id;
+                                  return (
+                                    <div
+                                      key={track.id}
+                                      onClick={() => play(track, tracks)}
+                                      className="group relative flex cursor-pointer flex-col rounded-2xl border border-white/[0.06] bg-[#141724]/75 p-3 shadow-[0_14px_32px_rgba(0,0,0,0.2)] transition duration-300 hover:-translate-y-1 hover:border-[#ff7a8a]/20 hover:bg-[#171b2a]"
+                                    >
+                                      <div className="aspect-square rounded-xl overflow-hidden bg-[#282828] relative mb-3">
+                                        <TrackArt src={track.cover} alt={track.title} size={150} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                          <div className="h-10 w-10 rounded-full bg-[#ff7a8a] text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition">
+                                            {isCurrent && isPlaying ? <Pause size={16} className="fill-black text-black" /> : <Play size={16} className="fill-black text-black ml-0.5" />}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <h4 className={`font-bold text-xs truncate ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
+                                        {track.title}
+                                      </h4>
+                                      <p className="text-[10px] text-gray-400 truncate mt-0.5">{track.artist}</p>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Global Chill Hits */}
+                        {activeTab === "music" && (
+                          <div className="hidden md:block">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="font-black text-lg text-white">Global Chill Hits</h3>
+                            </div>
+                            {globalHitsQuery.isLoading ? (
+                              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6">
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                  <div key={i} className="h-44 animate-pulse rounded-2xl bg-white/5" />
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6">
+                                {globalHits.slice(0, 12).map((track) => {
+                                  const isCurrent = currentTrack?.id === track.id;
+                                  return (
+                                    <div
+                                      key={track.id}
+                                      onClick={() => play(track, globalHits)}
+                                      className="group relative flex cursor-pointer flex-col rounded-2xl border border-white/[0.06] bg-[#141724]/75 p-3 shadow-[0_14px_32px_rgba(0,0,0,0.2)] transition duration-300 hover:-translate-y-1 hover:border-[#ff7a8a]/20 hover:bg-[#171b2a]"
+                                    >
+                                      <div className="aspect-square rounded-xl overflow-hidden bg-[#282828] relative mb-3">
+                                        <TrackArt src={track.cover} alt={track.title} size={150} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                          <div className="h-10 w-10 rounded-full bg-[#ff7a8a] text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition">
+                                            {isCurrent && isPlaying ? <Pause size={16} className="fill-black text-black" /> : <Play size={16} className="fill-black text-black ml-0.5" />}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <h4 className={`font-bold text-xs truncate ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
+                                        {track.title}
+                                      </h4>
+                                      <p className="text-[10px] text-gray-400 truncate mt-0.5">{track.artist}</p>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Trending Songs - Mobile Only */}
+                        {activeTab === "music" && (
+                          <div className="md:hidden">
+                            <div className="flex items-center justify-between mb-3 mt-2">
+                              <h3 className="font-black text-lg text-white">Trending on Internet</h3>
+                            </div>
+
+                            <div className="flex flex-col gap-2 bg-[#141724]/40 border border-white/[0.03] p-3 rounded-2xl">
+                              {tracks.slice(0, 5).map((track, i) => {
+                                const isCurrent = currentTrack?.id === track.id;
+                                return (
+                                  <div
+                                    key={track.id}
+                                    onClick={() => play(track, tracks)}
+                                    className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-white/5 active:scale-[0.99] transition duration-200 ${isCurrent ? "bg-white/5" : ""}`}
+                                  >
+                                    <div className="w-5 text-center text-xs font-black text-[#ff7a8a]">
+                                      {i + 1}
+                                    </div>
+                                    <div className="relative h-11 w-11 rounded-lg overflow-hidden shrink-0 bg-[#282828] border border-white/5">
+                                      <TrackArt src={track.cover} alt={track.title} size={44} />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <h4 className={`truncate font-extrabold text-xs leading-tight ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
+                                        {track.title}
+                                      </h4>
+                                      <p className="truncate text-[10px] text-white/50 mt-1 font-medium leading-none">{track.artist}</p>
+                                    </div>
+                                    <div className="shrink-0 text-white/40 group-hover:text-white transition p-1">
+                                      {isCurrent && isPlaying ? (
+                                        <Pause size={14} className="text-[#ff7a8a]" />
+                                      ) : (
+                                        <Play size={14} />
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Playlists Section */}
+                        {activeTab === "music" && (
+                          <div>
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="font-black text-lg text-white">Featured LoFi Playlists</h3>
+                              <button
+                                onClick={() => { setSelectedPlaylist(null); setAppView("library"); }}
+                                className="text-xs font-bold text-[#8b8e9f] hover:text-[#ff7a8a] transition"
+                              >
+                                View all
+                              </button>
+                            </div>
+                            <div className="flex sm:grid overflow-x-auto sm:overflow-x-visible pb-4 sm:pb-0 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 snap-x scrollbar-none">
+                              {playlistList.slice(1, 6).map((playlist) => (
+                                <div
+                                  key={playlist.id}
+                                  onClick={() => { setSelectedPlaylist(playlist); setAppView("library"); }}
+                                  className="w-[130px] sm:w-auto shrink-0 snap-start flex flex-col cursor-pointer group"
+                                >
+                                  {/* Playlist Cover Art with Play Button Overlay */}
+                                  <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-2 bg-[#1b1c26] border border-white/[0.04] shadow-md">
+                                    <TrackArt
+                                      src={playlist.cover}
+                                      alt={playlist.name}
+                                      size={150}
+                                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors" />
+                                    <div
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (playlist.tracks.length > 0) {
+                                          play(playlist.tracks[0], playlist.tracks);
+                                        }
+                                      }}
+                                      className="absolute bottom-2.5 right-2.5 h-8 w-8 rounded-full bg-[#ff7a8a] text-black shadow-lg flex items-center justify-center transition hover:bg-[#ff9aa6] hover:scale-105 active:scale-95"
+                                    >
+                                      <Play size={12} className="fill-black text-black ml-0.5" />
+                                    </div>
+                                  </div>
+
+                                  {/* Playlist Metadata Below */}
+                                  <div className="min-w-0 px-0.5">
+                                    <h4 className="font-extrabold text-[12px] text-white truncate group-hover:text-[#ff7a8a] transition-colors leading-tight">
+                                      {playlist.name}
+                                    </h4>
+                                    <p className="text-[10px] text-white/50 truncate mt-0.5 font-medium leading-tight">
+                                      {playlist.desc}
+                                    </p>
+                                    <span className="text-[9px] text-[#ff7a8a]/70 font-bold uppercase tracking-wider block mt-1">
+                                      {playlist.id === "favs" ? likedIds.length : playlist.tracks.length} songs
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Latest Released Music */}
+                        {activeTab === "music" && (
+                          <div>
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="font-black text-lg text-white">Latest Released Music</h3>
+                            </div>
+                            {newReleasesQuery.isLoading ? (
+                              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6">
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                  <div key={i} className="h-44 animate-pulse rounded-2xl bg-white/5" />
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6">
+                                {newReleases.slice(0, 12).map((track) => {
+                                  const isCurrent = currentTrack?.id === track.id;
+                                  return (
+                                    <div
+                                      key={track.id}
+                                      onClick={() => play(track, newReleases)}
+                                      className="group relative flex cursor-pointer flex-col rounded-2xl border border-white/[0.06] bg-[#141724]/75 p-3 shadow-[0_14px_32px_rgba(0,0,0,0.2)] transition duration-300 hover:-translate-y-1 hover:border-[#ff7a8a]/20 hover:bg-[#171b2a]"
+                                    >
+                                      <div className="aspect-square rounded-xl overflow-hidden bg-[#282828] relative mb-3">
+                                        <TrackArt src={track.cover} alt={track.title} size={150} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                          <div className="h-10 w-10 rounded-full bg-[#ff7a8a] text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition">
+                                            {isCurrent && isPlaying ? <Pause size={16} className="fill-black text-black" /> : <Play size={16} className="fill-black text-black ml-0.5" />}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <h4 className={`font-bold text-xs truncate ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
+                                        {track.title}
+                                      </h4>
+                                      <p className="text-[10px] text-gray-400 truncate mt-0.5">{track.artist}</p>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {activeTab === "mood" && (
+                          <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
+                            <div className="rounded-3xl border border-white/[0.06] bg-[#141724]/65 p-5">
+                              <div className="mb-5 flex items-center justify-between gap-4">
+                                <div>
+                                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#ff7a8a]">Radio moods</p>
+                                  <h3 className="mt-1 text-xl font-black text-white">Pick your current vibe</h3>
+                                </div>
+                                <span className="hidden rounded-full border border-white/[0.06] bg-white/[0.035] px-3 py-1.5 text-[10px] font-bold text-white/50 sm:block">
+                                  {MOODS.length} mixes
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                                {MOODS.map((mood) => {
+                                  const Icon = mood.icon;
+                                  return (
+                                    <button
+                                      key={mood.id}
+                                      onClick={() => setActiveMood(mood.id)}
+                                      className="group flex min-h-[128px] flex-col justify-between rounded-2xl border border-white/[0.06] bg-white/[0.035] p-4 text-left transition hover:-translate-y-1 hover:border-white/[0.12] hover:bg-white/[0.06]"
+                                    >
+                                      <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-lg" style={{ background: mood.color }}>
+                                        <Icon size={19} />
+                                      </div>
+                                      <div>
+                                        <h4 className="text-sm font-black text-white group-hover:text-[#ff7a8a]">{mood.label}</h4>
+                                        <p className="mt-1 text-[10px] font-medium leading-relaxed text-white/45">{mood.query}</p>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col justify-between rounded-3xl border border-white/[0.06] bg-[#141724]/65 p-5">
+                              <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-300">Smart queue</p>
+                                <h3 className="mt-1 text-xl font-black text-white">Keeps playing after every song</h3>
+                                <p className="mt-3 text-xs font-medium leading-relaxed text-white/50">
+                                  Your queue blends fresh search results with your recent listening so the room never goes quiet.
                                 </p>
                               </div>
 
-                              <div className="z-10 flex items-center justify-between w-full">
-                                <div className="flex items-center gap-3">
-                                  <button
-                                    onClick={() => {
-                                      const lofi = playlistList.find(p => p.id === slide.playlistId);
-                                      if (lofi && lofi.tracks.length > 0) play(lofi.tracks[0], lofi.tracks);
-                                    }}
-                                    className="h-10 px-6 rounded-xl bg-[#ff7a8a] text-black font-bold text-xs flex items-center gap-2 hover:bg-[#ff9aa6] transition hover:scale-105 active:scale-95 shadow-lg shadow-[#ff7a8a]/20"
-                                  >
-                                    <Play size={14} className="fill-black text-black ml-0.5" />
-                                    Play Mix
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const lofi = playlistList.find(p => p.id === slide.playlistId);
-                                      if (lofi && lofi.tracks.length > 0) {
-                                        const { toggleShuffle } = usePlayerStore.getState();
-                                        toggleShuffle();
-                                        play(lofi.tracks[Math.floor(Math.random() * lofi.tracks.length)], lofi.tracks);
-                                      }
-                                    }}
-                                    className="h-10 px-6 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold text-xs flex items-center gap-2 transition hover:scale-105 active:scale-95 backdrop-blur-md"
-                                  >
-                                    <Shuffle size={14} />
-                                    Shuffle
-                                  </button>
-                                </div>
-
-                                {/* Slider Indicator Dots */}
-                                <div className="flex items-center gap-1.5 pb-1">
-                                  {HERO_SLIDES.map((_, dotIdx) => (
+                              <div className="mt-5 rounded-2xl border border-white/[0.06] bg-[#0d0f1a]/80 p-3">
+                                {currentTrack ? (
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-[#282828]">
+                                      <TrackArt src={currentTrack.cover} alt={currentTrack.title} size={56} />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="truncate text-sm font-black text-white">{currentTrack.title}</p>
+                                      <p className="mt-1 truncate text-xs text-white/45">{currentTrack.artist}</p>
+                                    </div>
                                     <button
-                                      key={dotIdx}
-                                      onClick={() => setCurrentHeroSlide(dotIdx)}
-                                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                                        dotIdx === currentHeroSlide ? "w-6 bg-[#ff7a8a]" : "w-1.5 bg-white/30 hover:bg-white/50"
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                            </motion.div>
-                          );
-                        })}
-                      </AnimatePresence>
-                    </div>
-                  )}
-
-                  {/* Trending Hindi Songs */}
-                  {activeTab === "music" && (
-                    <div className="hidden md:block">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-black text-lg text-white">Trending Hindi Songs</h3>
-                      </div>
-                      {trendingQuery.isLoading ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                          {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="h-44 animate-pulse rounded-2xl bg-white/5" />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                          {tracks.slice(0, 12).map((track) => {
-                            const isCurrent = currentTrack?.id === track.id;
-                            return (
-                              <div
-                                key={track.id}
-                                onClick={() => play(track, tracks)}
-                                className="p-3 rounded-2xl bg-[#141724]/60 border border-white/[0.04] flex flex-col cursor-pointer group shadow-lg hover:scale-[1.02] hover:bg-[#141724] transition duration-300 relative"
-                              >
-                                <div className="aspect-square rounded-xl overflow-hidden bg-[#282828] relative mb-3">
-                                  <TrackArt src={track.cover} alt={track.title} size={150} className="w-full h-full object-cover" />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                    <div className="h-10 w-10 rounded-full bg-[#ff7a8a] text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition">
-                                      {isCurrent && isPlaying ? <Pause size={16} className="fill-black text-black" /> : <Play size={16} className="fill-black text-black ml-0.5" />}
-                                    </div>
+                                      onClick={togglePlaying}
+                                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#ff7a8a] text-black transition hover:bg-[#ff9aa6]"
+                                    >
+                                      {isPlaying ? <Pause size={15} className="fill-black" /> : <Play size={15} className="fill-black ml-0.5" />}
+                                    </button>
                                   </div>
-                                </div>
-                                <h4 className={`font-bold text-xs truncate ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
-                                  {track.title}
-                                </h4>
-                                <p className="text-[10px] text-gray-400 truncate mt-0.5">{track.artist}</p>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Global Chill Hits */}
-                  {activeTab === "music" && (
-                    <div className="hidden md:block">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-black text-lg text-white">Global Chill Hits</h3>
-                      </div>
-                      {globalHitsQuery.isLoading ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                          {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="h-44 animate-pulse rounded-2xl bg-white/5" />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                          {globalHits.slice(0, 12).map((track) => {
-                            const isCurrent = currentTrack?.id === track.id;
-                            return (
-                              <div
-                                key={track.id}
-                                onClick={() => play(track, globalHits)}
-                                className="p-3 rounded-2xl bg-[#141724]/60 border border-white/[0.04] flex flex-col cursor-pointer group shadow-lg hover:scale-[1.02] hover:bg-[#141724] transition duration-300 relative"
-                              >
-                                <div className="aspect-square rounded-xl overflow-hidden bg-[#282828] relative mb-3">
-                                  <TrackArt src={track.cover} alt={track.title} size={150} className="w-full h-full object-cover" />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                    <div className="h-10 w-10 rounded-full bg-[#ff7a8a] text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition">
-                                      {isCurrent && isPlaying ? <Pause size={16} className="fill-black text-black" /> : <Play size={16} className="fill-black text-black ml-0.5" />}
-                                    </div>
-                                  </div>
-                                </div>
-                                <h4 className={`font-bold text-xs truncate ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
-                                  {track.title}
-                                </h4>
-                                <p className="text-[10px] text-gray-400 truncate mt-0.5">{track.artist}</p>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Trending Songs - Mobile Only */}
-                  {activeTab === "music" && (
-                    <div className="md:hidden">
-                      <div className="flex items-center justify-between mb-3 mt-2">
-                        <h3 className="font-black text-lg text-white">Trending on Internet</h3>
-                      </div>
-                      
-                      <div className="flex flex-col gap-2 bg-[#141724]/40 border border-white/[0.03] p-3 rounded-2xl">
-                        {tracks.slice(0, 5).map((track, i) => {
-                          const isCurrent = currentTrack?.id === track.id;
-                          return (
-                            <div
-                              key={track.id}
-                              onClick={() => play(track, tracks)}
-                              className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-white/5 active:scale-[0.99] transition duration-200 ${isCurrent ? "bg-white/5" : ""}`}
-                            >
-                              <div className="w-5 text-center text-xs font-black text-[#ff7a8a]">
-                                {i + 1}
-                              </div>
-                              <div className="relative h-11 w-11 rounded-lg overflow-hidden shrink-0 bg-[#282828] border border-white/5">
-                                <TrackArt src={track.cover} alt={track.title} size={44} />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <h4 className={`truncate font-extrabold text-xs leading-tight ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
-                                  {track.title}
-                                </h4>
-                                <p className="truncate text-[10px] text-white/50 mt-1 font-medium leading-none">{track.artist}</p>
-                              </div>
-                              <div className="shrink-0 text-white/40 group-hover:text-white transition p-1">
-                                {isCurrent && isPlaying ? (
-                                  <Pause size={14} className="text-[#ff7a8a]" />
                                 ) : (
-                                  <Play size={14} />
+                                  <div className="flex items-center gap-3 text-white/45">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04]">
+                                      <MusicIcon size={18} />
+                                    </div>
+                                    <p className="text-xs font-semibold">Choose a mood to start radio playback.</p>
+                                  </div>
                                 )}
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Playlists Section */}
-                  {activeTab === "music" && (
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-black text-lg text-white">Featured LoFi Playlists</h3>
-                        <button 
-                          onClick={() => { setSelectedPlaylist(null); setAppView("library"); }}
-                          className="text-xs font-bold text-[#8b8e9f] hover:text-[#ff7a8a] transition"
-                        >
-                          View all
-                        </button>
-                      </div>
-                      <div className="flex sm:grid overflow-x-auto sm:overflow-x-visible pb-4 sm:pb-0 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 snap-x scrollbar-none">
-                        {playlistList.slice(1, 6).map((playlist) => (
-                          <div
-                            key={playlist.id}
-                            onClick={() => { setSelectedPlaylist(playlist); setAppView("library"); }}
-                            className="w-[130px] sm:w-auto shrink-0 snap-start flex flex-col cursor-pointer group"
-                          >
-                            {/* Playlist Cover Art with Play Button Overlay */}
-                            <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-2 bg-[#1b1c26] border border-white/[0.04] shadow-md">
-                              <TrackArt
-                                src={playlist.cover}
-                                alt={playlist.name}
-                                size={150}
-                                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                              />
-                              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors" />
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (playlist.tracks.length > 0) {
-                                    play(playlist.tracks[0], playlist.tracks);
-                                  }
-                                }}
-                                className="absolute bottom-2.5 right-2.5 h-8 w-8 rounded-full bg-[#ff7a8a] text-black shadow-lg flex items-center justify-center transition hover:bg-[#ff9aa6] hover:scale-105 active:scale-95"
-                              >
-                                <Play size={12} className="fill-black text-black ml-0.5" />
-                              </div>
-                            </div>
-
-                            {/* Playlist Metadata Below */}
-                            <div className="min-w-0 px-0.5">
-                              <h4 className="font-extrabold text-[12px] text-white truncate group-hover:text-[#ff7a8a] transition-colors leading-tight">
-                                {playlist.name}
-                              </h4>
-                              <p className="text-[10px] text-white/50 truncate mt-0.5 font-medium leading-tight">
-                                {playlist.desc}
-                              </p>
-                              <span className="text-[9px] text-[#ff7a8a]/70 font-bold uppercase tracking-wider block mt-1">
-                                {playlist.id === "favs" ? likedIds.length : playlist.tracks.length} songs
-                              </span>
-                            </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                        )}
 
-                  {/* Latest Released Music */}
-                  {activeTab === "music" && (
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-black text-lg text-white">Latest Released Music</h3>
-                      </div>
-                      {newReleasesQuery.isLoading ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                          {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="h-44 animate-pulse rounded-2xl bg-white/5" />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                          {newReleases.slice(0, 12).map((track) => {
-                            const isCurrent = currentTrack?.id === track.id;
-                            return (
-                              <div
-                                key={track.id}
-                                onClick={() => play(track, newReleases)}
-                                className="p-3 rounded-2xl bg-[#141724]/60 border border-white/[0.04] flex flex-col cursor-pointer group shadow-lg hover:scale-[1.02] hover:bg-[#141724] transition duration-300 relative"
-                              >
-                                <div className="aspect-square rounded-xl overflow-hidden bg-[#282828] relative mb-3">
-                                  <TrackArt src={track.cover} alt={track.title} size={150} className="w-full h-full object-cover" />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                    <div className="h-10 w-10 rounded-full bg-[#ff7a8a] text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition">
-                                      {isCurrent && isPlaying ? <Pause size={16} className="fill-black text-black" /> : <Play size={16} className="fill-black text-black ml-0.5" />}
-                                    </div>
-                                  </div>
-                                </div>
-                                <h4 className={`font-bold text-xs truncate ${isCurrent ? "text-[#ff7a8a]" : "text-white"}`}>
-                                  {track.title}
-                                </h4>
-                                <p className="text-[10px] text-gray-400 truncate mt-0.5">{track.artist}</p>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-
-
-
-                </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
               )}
-            </AnimatePresence>
-              </>
-            )}
-          </div>
-        </main>
-        <div className="hidden sm:block">
-          <PlayerShell />
+            </div>
+          </main>
         </div>
-      </div>
 
         {/* ── Right Sidebar (Community Feed / Track Comments) ─────────────────────────────── */}
-        <aside className="hidden lg:flex w-[350px] shrink-0 rounded-2xl bg-[#141724] border border-white/[0.04] flex-col overflow-hidden h-[calc(100vh-110px)] p-4 gap-4">
+        <aside className="hidden h-full min-h-0 w-[350px] shrink-0 flex-col gap-4 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#141724] p-4 lg:flex">
           <div className="flex items-center justify-between border-b border-white/[0.04] pb-3">
             <span className="font-black text-base text-white">Song Community</span>
           </div>
@@ -1347,10 +1489,8 @@ export function MusicHome() {
         </button>
       </div>
 
-      {/* Mobile-only Player Shell at root level to escape stacking context */}
-      <div className="sm:hidden">
-        <PlayerShell />
-      </div>
+      {/* Single Player Shell instance rendered at root level to avoid duplicate audio/echo issues */}
+      <PlayerShell />
     </div>
   );
 }

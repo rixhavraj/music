@@ -3,7 +3,7 @@ import { idSchema } from "@/lib/validation";
 import { optionalAuth } from "@/lib/middleware";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { recordPlay } from "@/lib/db";
-import { getCachedStreamUrl, makeToneWav, pipeYoutubeStream } from "@/services/stream.service";
+import { getCachedStreamUrl, makeToneWav, pipeYoutubeStream, invalidateStreamUrl } from "@/services/stream.service";
 import { getMusicSource } from "@/lib/music-sources";
 
 const router = Router();
@@ -33,15 +33,8 @@ router.get("/stream/:id/url", optionalAuth, async (req, res) => {
 
 // GET /api/stream/:id
 router.get("/stream/:id", optionalAuth, async (req, res) => {
-  const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "local";
-  const ipKey = Array.isArray(clientIp) ? clientIp[0] : clientIp;
-  const rate = checkRateLimit(`stream:${ipKey}`, 120, 60_000);
-
-  if (!rate.ok) {
-    res.status(429).json({ error: "Too many requests" });
-    return;
-  }
-
+  // Rate limiting disabled for stream chunk requests to prevent playback stuttering and desync.
+  
   const parsed = idSchema.safeParse(req.params.id);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid track id" });
@@ -54,8 +47,20 @@ router.get("/stream/:id", optionalAuth, async (req, res) => {
 
   if (process.env.MUSIC_SOURCE === "ytmusic") {
     try {
-      const directUrl = await getCachedStreamUrl(parsed.data);
-      await pipeYoutubeStream(directUrl, req.headers.range, res);
+      let directUrl = await getCachedStreamUrl(parsed.data);
+      try {
+        await pipeYoutubeStream(directUrl, req.headers.range, res);
+      } catch (streamErr: any) {
+        // If forbidden or expired, clear cache, fetch new url and retry once
+        if (streamErr.statusCode === 403 || streamErr.statusCode === 410) {
+          console.log(`Stream URL expired for ${parsed.data}. Invaliding cache and retrying...`);
+          invalidateStreamUrl(parsed.data);
+          directUrl = await getCachedStreamUrl(parsed.data);
+          await pipeYoutubeStream(directUrl, req.headers.range, res);
+        } else {
+          throw streamErr;
+        }
+      }
       return;
     } catch (error) {
       console.error("yt-dlp streaming proxy error:", error);
@@ -86,3 +91,4 @@ router.get("/stream/:id", optionalAuth, async (req, res) => {
 });
 
 export default router;
+

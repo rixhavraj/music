@@ -115,19 +115,25 @@ export const usePlayerStore = create<PlayerState>()(
             const { valence, energy } = mood;
             const title  = currentTrack.title.toLowerCase();
             const artist = currentTrack.artist.toLowerCase();
-            const isHindi   = ["dil","ishq","pyar","arijit","shreya","jubin","atif","pritam","rahman"].some(k => title.includes(k) || artist.includes(k));
-            const isPunjabi = ["jatt","punjabi","diljit","ap dhillon","shubh","moosewala"].some(k => title.includes(k) || artist.includes(k));
+            
+            const hindiKeywords = ["dil","ishq","pyar","arijit","shreya","jubin","atif","pritam","rahman","kumar","udit","sonu","neha","bollywood","hindi","darshan","anuv"];
+            const punjabiKeywords = ["jatt","punjabi","diljit","ap dhillon","shubh","moosewala","karan aujla","guru randhawa"];
+            const romanceKeywords = ["love","romance","romantic","ishq","pyar","heart","mera","dil"];
+            
+            const isHindi = hindiKeywords.some(k => title.includes(k) || artist.includes(k));
+            const isPunjabi = punjabiKeywords.some(k => title.includes(k) || artist.includes(k));
+            const isRomance = romanceKeywords.some(k => title.includes(k) || artist.includes(k));
 
-            if (valence > 0.65 && energy > 0.65) {
-              query = isHindi ? "Bollywood party dance hits" : isPunjabi ? "Punjabi high energy dance" : "upbeat party pop hits";
-            } else if (valence > 0.65 && energy <= 0.65) {
-              query = isHindi ? "Hindi romantic love songs" : "popular romantic acoustic love songs";
+            if (isRomance || (valence > 0.65 && energy <= 0.65)) {
+              query = isHindi ? "Best Hindi romantic love songs hits" : "Top global romantic acoustic love songs";
+            } else if (valence > 0.65 && energy > 0.65) {
+              query = isHindi ? "Bollywood party dance hits 2026" : isPunjabi ? "Punjabi high energy dance hits" : "Upbeat global party pop hits";
             } else if (valence < 0.4 && energy < 0.4) {
-              query = isHindi ? "Hindi sad emotional songs" : "sad melodic songs";
+              query = isHindi ? "Hindi sad emotional heartbreak songs" : "Global sad melodic songs";
             } else if (energy > 0.7) {
-              query = isHindi ? "Bollywood workout motivation" : "workout motivation songs";
+              query = isHindi ? "Bollywood workout gym motivation" : "Global workout motivation songs";
             } else {
-              query = isHindi ? "Hindi chill lofi relax" : "chill lofi study beats";
+              query = isHindi ? "Trending Hindi Hits" : "Trending Global Pop Hits";
             }
 
             const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=25`);

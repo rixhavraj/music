@@ -1,5 +1,5 @@
 const STATIC_CACHE = "music-pwa-static-v1";
-const AUDIO_CACHE = "music-pwa-audio-v1";
+const AUDIO_CACHE = "music-pwa-audio-v2";
 const STATIC_ASSETS = ["/", "/manifest.webmanifest", "/icons/icon.svg"];
 const MAX_AUDIO_ITEMS = 24;
 
@@ -28,7 +28,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.pathname.startsWith("/api/stream/")) {
-    event.respondWith(cacheFirst(event.request, AUDIO_CACHE, MAX_AUDIO_ITEMS));
+    event.respondWith(fetch(event.request));
     return;
   }
 

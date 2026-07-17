@@ -66,6 +66,10 @@ export function makeToneWav(frequency: number, durationSeconds = 10): Buffer {
   return Buffer.from(buffer);
 }
 
+export function invalidateStreamUrl(id: string) {
+  streamUrlCache.delete(id);
+}
+
 export function pipeYoutubeStream(directUrl: string, rangeHeader: string | undefined, res: Response): Promise<void> {
   return new Promise((resolve, reject) => {
     const headers: Record<string, string> = {
@@ -119,6 +123,15 @@ export function pipeYoutubeStream(directUrl: string, rangeHeader: string | undef
         return;
       }
 
+      const statusCode = youtubeRes.statusCode || 200;
+      if (statusCode === 403 || statusCode === 410) {
+        cleanup();
+        const err = new Error(`HTTP ${statusCode} from YouTube`);
+        (err as any).statusCode = statusCode;
+        reject(err);
+        return;
+      }
+
       if (youtubeRes.headers["content-type"]) {
         res.setHeader("Content-Type", youtubeRes.headers["content-type"]);
       }
@@ -131,7 +144,7 @@ export function pipeYoutubeStream(directUrl: string, rangeHeader: string | undef
       res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("Access-Control-Allow-Origin", "*");
       
-      res.status(youtubeRes.statusCode || 200);
+      res.status(statusCode);
       youtubeRes.pipe(res);
 
       youtubeRes.on("end", () => {
@@ -150,3 +163,4 @@ export function pipeYoutubeStream(directUrl: string, rangeHeader: string | undef
     });
   });
 }
+

@@ -39,13 +39,14 @@ function getTrackWaveform(title: string, count: number = 36): number[] {
   return result;
 }
 
-export function PlayerShell() {
+export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boolean }) {
   const audioRef    = useRef<HTMLAudioElement | null>(null);
   const animRef     = useRef<number | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const barsRef     = useRef<(HTMLDivElement | null)[]>([]);
   const seekRef     = useRef<HTMLDivElement | null>(null);
+  const finishHandledRef = useRef(false);
 
   const [progress, setProgress]     = useState(0);
   const [duration, setDuration]     = useState(0);
@@ -65,6 +66,25 @@ export function PlayerShell() {
   const isLiked      = currentTrack ? likedIds.includes(currentTrack.id) : false;
   const totalDur     = (Number.isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || 1);
   const pct          = (progress / totalDur) * 100;
+
+  const finishCurrentTrack = useCallback(() => {
+    if (finishHandledRef.current) return;
+    finishHandledRef.current = true;
+
+    if (repeat === "one") {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.currentTime = 0;
+        setProgress(0);
+        finishHandledRef.current = false;
+        setPlaying(true);
+        audio.play().catch(() => setPlaying(false));
+      }
+      return;
+    }
+
+    playNext();
+  }, [playNext, repeat, setPlaying]);
 
   // Load comments on mount or currentTrack change
   useEffect(() => {
@@ -122,6 +142,7 @@ export function PlayerShell() {
     if (!audio || !currentTrack) return;
     audio.src = currentTrack.streamUrl || `/api/stream/${currentTrack.id}`;
     audio.playbackRate = playbackSpeed;
+    finishHandledRef.current = false;
     setProgress(0);
     setBufferedPercent(0);
     if (isPlaying) audio.play().catch(() => setPlaying(false));
@@ -183,6 +204,27 @@ export function PlayerShell() {
     if (!audio?.duration || !audio.buffered.length) return;
     setBufferedPercent((audio.buffered.end(audio.buffered.length - 1) / audio.duration) * 100);
   }, [setBufferedPercent]);
+
+  const onTimeUpdate = useCallback((audio: HTMLAudioElement) => {
+    setProgress(audio.currentTime);
+  }, []);
+
+  const finishIfNearEnd = useCallback(() => {
+    const audio = audioRef.current;
+    const audioDuration = audio && Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : duration;
+
+    if (audio && audioDuration > 0 && audioDuration - audio.currentTime <= 2) {
+      finishCurrentTrack();
+      return true;
+    }
+
+    return false;
+  }, [duration, finishCurrentTrack]);
+
+  const onPlaybackError = useCallback(() => {
+    if (finishIfNearEnd()) return;
+    setPlaying(false);
+  }, [finishIfNearEnd, setPlaying]);
 
   // ─── Seek ────────────────────────────────────────────────────────────────
   function seekAt(clientX: number) {
@@ -255,13 +297,17 @@ export function PlayerShell() {
   };
 
   return (
-    <footer className="w-full z-40 flex justify-center pointer-events-auto shrink-0">
+    <footer className={visuallyHidden ? "sr-only" : "fixed inset-x-0 bottom-0 z-40 flex w-full justify-center pointer-events-auto"}>
       <audio
         ref={audioRef}
-        onTimeUpdate={(e) => setProgress(e.currentTarget.currentTime)}
+        crossOrigin="anonymous"
+        onTimeUpdate={(e) => onTimeUpdate(e.currentTarget)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
         onProgress={onProgress}
-        onEnded={() => playNext()}
+        onEnded={finishCurrentTrack}
+        onError={onPlaybackError}
+        onStalled={finishIfNearEnd}
+        onWaiting={finishIfNearEnd}
       />
 
       {/* ═══════════ MOBILE  (< sm) ═══════════════════════════════════════ */}
@@ -270,7 +316,7 @@ export function PlayerShell() {
           {/* Floating capsule mini-player matching mockup */}
           <div
             onClick={() => setIsExpanded(true)}
-            className="pointer-events-auto fixed bottom-[76px] left-3 right-3 rounded-full bg-white text-black py-2 px-3 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-neutral-200 cursor-pointer"
+            className="pointer-events-auto fixed bottom-[76px] left-3 right-3 rounded-full bg-yellow-100 text-black py-2 px-3 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-neutral-200 cursor-pointer"
             style={{ maxWidth: "480px", margin: "0 auto" }}
           >
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
