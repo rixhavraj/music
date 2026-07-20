@@ -1,6 +1,6 @@
 import { Response } from "express";
 
-const YTDLP_PATH = process.env.YTDLP_PATH || "yt-dlp";
+const YTDLP_PATH = process.env.YTDLP_PATH || "./yt-dlp";
 
 interface StreamCache {
   url: string;

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "ts-node -r tsconfig-paths/register src/server.ts",
-    "build": "tsc",
+    "build": "tsc && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o yt-dlp && chmod a+rx yt-dlp",
     "start": "node dist/server.js"
   },
   "dependencies": {
