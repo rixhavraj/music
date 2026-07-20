@@ -67,11 +67,11 @@ export function HeroSection({ tracks = [], isLoading = false }: HeroSectionProps
   };
 
   return (
-    <section className="mb-10 px-8 pt-8">
+    <section className="mb-6 md:mb-10 px-4 md:px-6 lg:px-8 pt-6 md:pt-8">
       {/* Search Bar Container */}
-      <div className="relative mb-8 max-w-xl z-50" ref={searchRef}>
-        <div className={`flex-1 bg-brand-highlight/90 backdrop-blur-xl rounded-full flex items-center px-4 py-3 border transition-all ${isSearchFocused ? "border-brand-primary shadow-[0_0_20px_rgba(29,185,84,0.3)]" : "border-white/10"}`}>
-          <SearchIcon className="w-5 h-5 text-brand-muted" />
+      <div className="relative mb-6 md:mb-8 max-w-xl z-50" ref={searchRef}>
+        <div className={`flex-1 bg-brand-highlight/90 backdrop-blur-xl rounded-full flex items-center px-4 py-2.5 md:py-3 border transition-all ${isSearchFocused ? "border-brand-primary shadow-[0_0_20px_rgba(29,185,84,0.3)]" : "border-white/10"}`}>
+          <SearchIcon className="w-4 h-4 md:w-5 md:h-5 text-brand-muted" />
           <input 
             type="text" 
             placeholder="Search for songs, artists, moods..." 
@@ -124,26 +124,26 @@ export function HeroSection({ tracks = [], isLoading = false }: HeroSectionProps
             ) : (
               <div className="text-center py-10">
                 <SearchIcon className="w-10 h-10 text-brand-muted mx-auto mb-3" />
-                <p className="text-brand-muted font-medium">No results found for "{debouncedQuery}"</p>
+                <p className="text-brand-muted font-medium">No results found for &quot;{debouncedQuery}&quot;</p>
               </div>
             )}
           </div>
         )}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
         <div className="flex-1 flex flex-col justify-center">
-          <p className="text-sm font-medium mb-2">Good evening, Rishav 👋</p>
-          <h1 className="text-5xl font-extrabold mb-4 leading-tight">
+          <p className="text-xs md:text-sm font-medium mb-2">Good evening, Rishav 👋</p>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 md:mb-4 leading-tight">
             <span className="text-white">Your vibe, your</span><br/>
             <span className="text-brand-primary">music.</span>
           </h1>
-          <p className="text-brand-muted mb-8 text-sm">Listen to what moves you.</p>
-          <div className="flex gap-4">
+          <p className="text-brand-muted mb-6 md:mb-8 text-xs md:text-sm">Listen to what moves you.</p>
+          <div className="flex gap-3 md:gap-4">
             <button 
               onClick={handlePlayMix}
               disabled={isLoading || tracks.length === 0}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-medium flex items-center gap-2 hover:scale-105 transition shadow-lg shadow-brand-primary/20 disabled:opacity-50"
+              className="px-5 md:px-6 py-2 md:py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-medium flex items-center gap-2 hover:scale-105 transition shadow-lg shadow-brand-primary/20 disabled:opacity-50 text-sm"
             >
               <Play className="w-4 h-4 fill-current" />
               Play Mix
@@ -151,7 +151,7 @@ export function HeroSection({ tracks = [], isLoading = false }: HeroSectionProps
             <button 
               onClick={handleShuffle}
               disabled={isLoading || tracks.length === 0}
-              className="px-6 py-2.5 rounded-xl bg-brand-highlight border border-white/10 text-white font-medium flex items-center gap-2 hover:bg-white/5 transition disabled:opacity-50"
+              className="px-5 md:px-6 py-2 md:py-2.5 rounded-xl bg-brand-highlight border border-white/10 text-white font-medium flex items-center gap-2 hover:bg-white/5 transition disabled:opacity-50 text-sm"
             >
               <Shuffle className="w-4 h-4" />
               Shuffle
@@ -163,20 +163,20 @@ export function HeroSection({ tracks = [], isLoading = false }: HeroSectionProps
           <img src={tracks[0]?.cover || "https://images.unsplash.com/photo-1618331835717-801e976710b2?q=80&w=1000&auto=format&fit=crop"} alt="Hero Cover" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-hero-overlay"></div>
           
-          <div className="absolute bottom-6 left-6 right-6">
-            <div className="inline-flex items-center gap-1 px-3 py-1 bg-brand-secondary/80 backdrop-blur-md rounded-full text-[10px] font-bold text-white uppercase tracking-wider mb-3">
+          <div className="absolute bottom-4 md:bottom-6 left-4 md:left-6 right-4 md:right-6">
+            <div className="inline-flex items-center gap-1 px-3 py-1 bg-brand-secondary/80 backdrop-blur-md rounded-full text-[10px] font-bold text-white uppercase tracking-wider mb-2 md:mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
               AI MIX
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">{tracks[0]?.title || "Late Night Lofi"}</h2>
-            <p className="text-sm text-white/80 max-w-sm">{tracks[0]?.artist || "Chill beats to relax, study or vibe at night."}</p>
+            <h2 className="text-lg md:text-2xl font-bold text-white mb-1 md:mb-2">{tracks[0]?.title || "Late Night Lofi"}</h2>
+            <p className="text-xs md:text-sm text-white/80 max-w-sm">{tracks[0]?.artist || "Chill beats to relax, study or vibe at night."}</p>
           </div>
           <button 
             onClick={handlePlayMix}
             disabled={isLoading || tracks.length === 0}
-            className="absolute bottom-6 right-6 w-12 h-12 bg-gradient-to-tr from-brand-primary to-brand-secondary rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition disabled:opacity-50"
+            className="absolute bottom-4 md:bottom-6 right-4 md:right-6 w-10 h-10 md:w-12 md:h-12 bg-gradient-to-tr from-brand-primary to-brand-secondary rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition disabled:opacity-50"
           >
-            <Play className="w-5 h-5 ml-1 fill-current" />
+            <Play className="w-4 h-4 md:w-5 md:h-5 ml-0.5 fill-current" />
           </button>
         </div>
       </div>

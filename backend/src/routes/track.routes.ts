@@ -127,4 +127,36 @@ router.get("/track/:id", optionalAuth, async (req, res) => {
   }
 });
 
+// GET /api/playlist/:id
+router.get("/playlist/:id", optionalAuth, async (req, res) => {
+  const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "local";
+  const ipKey = Array.isArray(clientIp) ? clientIp[0] : clientIp;
+  const rate = checkRateLimit(ipKey);
+
+  if (!rate.ok) {
+    res.status(429).json({ error: "Too many requests" });
+    return;
+  }
+
+  const parsed = idSchema.safeParse(req.params.id);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid playlist id" });
+    return;
+  }
+
+  try {
+    const { getPlaylistById } = await import("@/services/music.service");
+    const playlist = await getPlaylistById(parsed.data);
+    if (!playlist) {
+      res.status(404).json({ error: "Playlist not found" });
+      return;
+    }
+    res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=7200");
+    res.json(playlist);
+  } catch (error) {
+    console.error("Playlist API error:", error);
+    res.status(500).json({ error: "Failed to fetch playlist details" });
+  }
+});
+
 export default router;

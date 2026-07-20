@@ -11,17 +11,17 @@ const MOODS = [
 
 export function MoodsVibes() {
   return (
-    <section className="mb-10 px-8 relative">
-      <div className="flex justify-between items-end mb-4">
-        <h2 className="text-2xl font-bold text-white">Moods & Vibes</h2>
-        <button className="text-sm font-medium text-brand-muted hover:text-white transition">View all</button>
+    <section className="mb-8 md:mb-10 px-4 md:px-6 lg:px-8 relative">
+      <div className="flex justify-between items-end mb-3 md:mb-4">
+        <h2 className="text-xl md:text-2xl font-bold text-white">Moods & Vibes</h2>
+        <button className="text-xs md:text-sm font-medium text-brand-muted hover:text-white transition">View all</button>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4">
+      <div className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-4">
         {MOODS.map((mood) => {
           const Icon = mood.icon;
           return (
-            <div key={mood.id} className={`min-w-[140px] max-w-[140px] h-36 rounded-2xl p-4 flex flex-col justify-between cursor-pointer hover:-translate-y-1 transition-transform border border-white/5 ${mood.bg}`}>
+            <div key={mood.id} className={`min-w-[110px] max-w-[110px] md:min-w-[140px] md:max-w-[140px] h-28 md:h-36 rounded-2xl p-3 md:p-4 flex flex-col justify-between cursor-pointer hover:-translate-y-1 transition-transform border border-white/5 ${mood.bg}`}>
               <Icon className={`w-8 h-8 ${mood.color}`} />
               <div>
                 <h3 className="font-bold text-white">{mood.title}</h3>

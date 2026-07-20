@@ -62,7 +62,7 @@ export function GenreCards({ title, items }: GenreCardsProps) {
             <Link 
               key={item.id}
               href={`/explore/${encodeURIComponent(item.title)}`}
-              className="relative w-[130px] h-[140px] shrink-0 rounded-2xl cursor-pointer group transition-transform hover:-translate-y-1 block"
+              className="relative w-[100px] h-[110px] md:w-[130px] md:h-[140px] shrink-0 rounded-2xl cursor-pointer group transition-transform hover:-translate-y-1 block"
               style={{
                 background: `linear-gradient(180deg, ${item.color}20 0%, rgba(0,0,0,0.8) 100%)`,
                 boxShadow: `inset 0 1px 1px ${item.color}40`,

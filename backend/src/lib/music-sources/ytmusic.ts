@@ -100,5 +100,31 @@ export const ytmusicMusicSource: MusicSource = {
   // Stream URL extraction is handled by yt-dlp in app/api/stream/[id]/route.ts
   async getStreamUrl(_id: string) {
     return null;
+  },
+
+  async getPlaylist(id: string) {
+    try {
+      const yt = await getYTMusicClient();
+      const playlist = (await yt.getPlaylist(id)) as any;
+      const videos = (await yt.getPlaylistVideos(id)) as any[];
+
+      if (!playlist || !videos) return null;
+
+      const cover = playlist.thumbnails?.[playlist.thumbnails.length - 1]?.url || "";
+      const tracks = videos.map((v: any) => normalize({
+        ...v,
+        type: "SONG"
+      }));
+
+      return {
+        id: playlist.playlistId || id,
+        title: playlist.name || "Playlist",
+        cover,
+        tracks
+      };
+    } catch (error) {
+      console.error("YTMusic getPlaylist error:", error);
+      return null;
+    }
   }
 };

@@ -107,12 +107,22 @@ function CommentCard({
   );
 }
 
+interface UserComment {
+  id: string;
+  avatar: string;
+  name: string;
+  time: string;
+  text: string;
+  likes: number;
+  replies: number;
+}
+
 export function RightSidebar() {
   const { recentlyPlayed, play, currentTrack } = usePlayerStore();
   const [activeTab, setActiveTab] = useState("Popular");
   
   const [newComment, setNewComment] = useState("");
-  const [userComments, setUserComments] = useState<Record<string, any[]>>({});
+  const [userComments, setUserComments] = useState<Record<string, UserComment[]>>({});
 
   useEffect(() => {
     const saved = localStorage.getItem("chillguys-comments");
@@ -161,7 +171,7 @@ export function RightSidebar() {
   };
 
   return (
-    <aside className="w-[420px] shrink-0 h-full bg-brand-dark flex flex-col p-6 overflow-y-auto scrollbar-hide border-l border-white/5">
+    <aside className="hidden lg:flex w-[420px] shrink-0 h-full bg-brand-dark flex-col p-6 overflow-y-auto scrollbar-hide border-l border-white/5">
       
       {/* Community Section */}
       <section className="mb-10">
@@ -193,7 +203,7 @@ export function RightSidebar() {
                 No comments yet. Be the first to share your thoughts on this track!
               </div>
             ) : (
-              (userComments[currentTrack.id] || []).map((c: any) => (
+              (userComments[currentTrack.id] || []).map((c: UserComment) => (
                 <CommentCard 
                   key={c.id}
                   avatar={c.avatar}

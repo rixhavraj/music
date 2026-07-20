@@ -178,6 +178,28 @@ export function MusicHome() {
     },
   });
 
+  const featuredPlaylistsQuery = useQuery({
+    queryKey: ["featuredPlaylists"],
+    queryFn: async () => {
+      // Popular YouTube Music Playlist IDs
+      const ids = [
+        "RDCLAK5uy_lZ-4sT0nJ9-sF4uYF_6zL5-l9dJ0y5vE0", // Lofi
+        "RDCLAK5uy_n6kGf6gI-vL8O0uO9fO2lX_9-8H-j8X9g", // Bollywood Dance
+        "RDCLAK5uy_l4-g8-7e_8o9uT3l_4-o6d6y-l_t_u_7Y", // Chill
+        "RDCLAK5uy_k-1Yf_v-2O8sP-r4X5z6l-8-qE-e_m8o0", // Top 50
+        "RDCLAK5uy_m5i6k4Och0A6cE3QkXn4l7R-L7l6N-pEA", // Pop Hotlist
+      ];
+      const results = await Promise.all(
+        ids.map(async (id) => {
+          const r = await fetch(`/api/playlist/${id}`);
+          if (!r.ok) return null;
+          return r.json();
+        })
+      );
+      return results.filter(Boolean) as { id: string, title: string, cover: string, tracks: Track[] }[];
+    }
+  });
+
   const searchQueryResult = useQuery({
     queryKey: ["search", debouncedSearch],
     queryFn: async () => {
@@ -234,56 +256,55 @@ export function MusicHome() {
     [likedIds, tracks]
   );
 
-  const playlistList = useMemo(() => [
-    {
-      id: "favs",
-      name: "Liked Songs",
-      desc: `Playlist • ${likedIds.length} songs`,
-      tracks: likedTracks,
-      cover: likedTracks[0]?.cover || "/covers/late-night-study.png",
-      gradient: "from-[#ff7a8a] to-[#090a10]",
-    },
-    {
-      id: "study",
-      name: "Late Night Study",
-      desc: "Focus • Relax • Repeat",
-      tracks: tracks.slice(0, 10),
-      cover: "/covers/late-night-study.png",
-      gradient: "from-[#ff7a8a] to-[#090a10]",
-    },
-    {
-      id: "rainy",
-      name: "Rainy Day LoFi",
-      desc: "Rain • Window • LoFi",
-      tracks: tracks.slice(5, 12),
-      cover: "/covers/rainy-day-lofi.png",
-      gradient: "from-[#3b82f6] to-[#090a10]",
-    },
-    {
-      id: "drive",
-      name: "Sunset Drive",
-      desc: "Chill • Drive • Unwind",
-      tracks: tracks.slice(10, 17),
-      cover: "/covers/sunset-drive.png",
-      gradient: "from-[#f59e0b] to-[#090a10]",
-    },
-    {
-      id: "sleepless",
-      name: "Sleepless Nights",
-      desc: "Dark • Calm • LoFi",
-      tracks: tracks.slice(2, 9),
-      cover: "/covers/sleepless-nights.png",
-      gradient: "from-[#8b5cf6] to-[#090a10]",
-    },
-    {
-      id: "coffee",
-      name: "Coffee & LoFi",
-      desc: "Coffee • Chill • Vibes",
-      tracks: tracks.slice(7, 14),
-      cover: "/covers/coffee-lofi.png",
-      gradient: "from-[#ff7a8a] to-[#090a10]",
-    },
-  ], [likedIds.length, likedTracks, tracks]);
+  const playlistList = useMemo(() => {
+    const dynamicPlaylists = (featuredPlaylistsQuery.data || []).map((p) => ({
+      id: p.id,
+      name: p.title,
+      desc: `Playlist • ${p.tracks.length} songs`,
+      tracks: p.tracks,
+      cover: p.cover || "/covers/late-night-study.png",
+      gradient: "from-[#3b82f6] to-[#090a10]"
+    }));
+
+    return [
+      {
+        id: "favs",
+        name: "Liked Songs",
+        desc: `Playlist • ${likedIds.length} songs`,
+        tracks: likedTracks,
+        cover: likedTracks[0]?.cover || "/covers/late-night-study.png",
+        gradient: "from-[#ff7a8a] to-[#090a10]",
+      },
+      ...dynamicPlaylists,
+      // Fallbacks in case dynamic fetch fails
+      ...(dynamicPlaylists.length === 0 ? [
+        {
+          id: "study",
+          name: "Late Night Study",
+          desc: "Focus • Relax • Repeat",
+          tracks: tracks.slice(0, 10),
+          cover: "/covers/late-night-study.png",
+          gradient: "from-[#ff7a8a] to-[#090a10]",
+        },
+        {
+          id: "rainy",
+          name: "Rainy Day LoFi",
+          desc: "Rain • Window • LoFi",
+          tracks: tracks.slice(5, 12),
+          cover: "/covers/rainy-day-lofi.png",
+          gradient: "from-[#3b82f6] to-[#090a10]",
+        },
+        {
+          id: "drive",
+          name: "Sunset Drive",
+          desc: "Chill • Drive • Unwind",
+          tracks: tracks.slice(10, 17),
+          cover: "/covers/sunset-drive.png",
+          gradient: "from-[#f59e0b] to-[#090a10]",
+        }
+      ] : [])
+    ];
+  }, [likedIds.length, likedTracks, featuredPlaylistsQuery.data, tracks]);
 
   function play(track: Track, queueList: Track[] = []) {
     const q = queueList.length > 0 ? queueList : tracks;

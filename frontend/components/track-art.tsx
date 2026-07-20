@@ -21,6 +21,8 @@ export function TrackArt({ src, alt, size = 56, priority = false, className }: T
       width={size}
       height={size}
       priority={priority}
+      loading={priority ? undefined : "lazy"}
+      decoding={priority ? "sync" : "async"}
       unoptimized={safeSrc.endsWith(".svg") || isExternal}
       className={`shrink-0 object-cover w-full h-full ${className || ""}`}
     />

@@ -13,13 +13,13 @@ export function GlobalHitsCards({ title, items }: GlobalHitsCardsProps) {
   const { play, currentTrack, isPlaying } = usePlayerStore();
 
   return (
-    <section className="mb-10 px-8">
-      <div className="flex justify-between items-end mb-4">
-        <h2 className="text-2xl font-bold text-white">{title}</h2>
-        <button className="text-sm font-medium text-brand-muted hover:text-white transition">View all</button>
+    <section className="mb-8 md:mb-10 px-4 md:px-6 lg:px-8">
+      <div className="flex justify-between items-end mb-3 md:mb-4">
+        <h2 className="text-xl md:text-2xl font-bold text-white">{title}</h2>
+        <button className="text-xs md:text-sm font-medium text-brand-muted hover:text-white transition">View all</button>
       </div>
       
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
         {items.slice(0, 8).map((item) => {
           const isCurrent = currentTrack?.id === item.id;
           

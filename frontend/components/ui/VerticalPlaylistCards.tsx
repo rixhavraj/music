@@ -57,7 +57,7 @@ export function VerticalPlaylistCards({ title, items }: VerticalPlaylistCardsPro
           <Link 
             key={item.id}
             href={`/explore/${encodeURIComponent(item.title)}`}
-            className="group relative w-[180px] h-[260px] shrink-0 rounded-2xl overflow-hidden cursor-pointer shadow-lg block"
+            className="group relative w-[140px] h-[200px] md:w-[180px] md:h-[260px] shrink-0 rounded-2xl overflow-hidden cursor-pointer shadow-lg block"
           >
             <img 
               src={item.cover} 

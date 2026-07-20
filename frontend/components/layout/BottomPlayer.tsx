@@ -118,7 +118,7 @@ export function BottomPlayer() {
   };
 
   return (
-    <div className="h-24 bg-brand-surface border-t border-white/5 flex items-center justify-between px-6 rounded-t-3xl shadow-player z-50">
+    <div className="hidden md:flex h-24 bg-brand-surface border-t border-white/5 items-center justify-between px-6 rounded-t-3xl shadow-player z-50">
       <audio
         ref={audioRef}
         crossOrigin="anonymous"

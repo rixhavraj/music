@@ -47,6 +47,7 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
   const barsRef     = useRef<(HTMLDivElement | null)[]>([]);
   const seekRef     = useRef<HTMLDivElement | null>(null);
   const finishHandledRef = useRef(false);
+  const retryCountRef = useRef(0);
 
   const [progress, setProgress]     = useState(0);
   const [duration, setDuration]     = useState(0);
@@ -143,6 +144,7 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
     audio.src = currentTrack.streamUrl || `/api/stream/${currentTrack.id}`;
     audio.playbackRate = playbackSpeed;
     finishHandledRef.current = false;
+    retryCountRef.current = 0;
     setProgress(0);
     setBufferedPercent(0);
     if (isPlaying) audio.play().catch(() => setPlaying(false));
@@ -223,8 +225,29 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
 
   const onPlaybackError = useCallback(() => {
     if (finishIfNearEnd()) return;
+    
+    const audio = audioRef.current;
+    if (audio && currentTrack) {
+      if (retryCountRef.current < 3) {
+        retryCountRef.current += 1;
+        console.warn(`Stream dropped, attempting resume (${retryCountRef.current}/3)...`);
+        
+        const currentTime = audio.currentTime;
+        audio.src = (currentTrack.streamUrl || `/api/stream/${currentTrack.id}`) + `?retry=${Date.now()}`;
+        audio.load();
+        
+        const onReady = () => {
+          audio.currentTime = currentTime;
+          audio.play().catch(() => setPlaying(false));
+          audio.removeEventListener("loadedmetadata", onReady);
+        };
+        audio.addEventListener("loadedmetadata", onReady);
+        return;
+      }
+    }
+    
     setPlaying(false);
-  }, [finishIfNearEnd, setPlaying]);
+  }, [finishIfNearEnd, setPlaying, currentTrack]);
 
   // ─── Seek ────────────────────────────────────────────────────────────────
   function seekAt(clientX: number) {
@@ -316,7 +339,7 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
           {/* Floating capsule mini-player matching mockup */}
           <div
             onClick={() => setIsExpanded(true)}
-            className="pointer-events-auto fixed bottom-[76px] left-3 right-3 rounded-full bg-yellow-100 text-black py-2 px-3 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-neutral-200 cursor-pointer"
+            className="pointer-events-auto fixed bottom-[84px] left-3 right-3 rounded-full bg-yellow-100 text-black py-2 px-3 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-neutral-200 cursor-pointer"
             style={{ maxWidth: "480px", margin: "0 auto" }}
           >
             <div className="flex items-center gap-2.5 min-w-0 flex-1">

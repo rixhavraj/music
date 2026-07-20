@@ -13,17 +13,17 @@ export function SectionSlider({ title, items }: SectionSliderProps) {
   const { play } = usePlayerStore();
 
   return (
-    <section className="mb-10 px-8">
-      <div className="flex justify-between items-end mb-4">
-        <h2 className="text-2xl font-bold text-white">{title}</h2>
-        <button className="text-sm font-medium text-brand-muted hover:text-white transition">View all</button>
+    <section className="mb-8 md:mb-10 px-4 md:px-6 lg:px-8">
+      <div className="flex justify-between items-end mb-3 md:mb-4">
+        <h2 className="text-xl md:text-2xl font-bold text-white">{title}</h2>
+        <button className="text-xs md:text-sm font-medium text-brand-muted hover:text-white transition">View all</button>
       </div>
       
-      <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-4">
+      <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-4">
         {items.map((item) => (
           <div 
             key={item.id} 
-            className="min-w-[160px] max-w-[160px] group cursor-pointer"
+            className="min-w-[130px] max-w-[130px] md:min-w-[160px] md:max-w-[160px] group cursor-pointer"
             onClick={() => play(item, items)}
           >
             <div className="relative rounded-2xl overflow-hidden aspect-square mb-3 shadow-lg">

@@ -71,6 +71,25 @@ const TRENDING_PLAYLISTS = [
 ];
 
 export default function Home() {
+  const featuredPlaylistsQuery = useQuery({
+    queryKey: ["featuredPlaylists"],
+    queryFn: async () => {
+      const ids = [
+        "PL4fGSI1pG0MDX4h9Z5Cj4OtzjH8dI76-6", // Lofi Hip Hop
+        "PLw-VjHDlEOgs658kAHR_LAaILBXb-sILT", // Top 50 This Week
+        "PL9bw4S5ePsEGkUSNf6nB1e2YntOa27tq2", // Bollywood Workout
+        "PLFgquLnL59alW3xmYiWRaoz0oM3H17Lth", // Top Tracks - India
+      ];
+      const results = await Promise.all(
+        ids.map(async (id) => {
+          const r = await fetch(`/api/playlist/${id}`);
+          if (!r.ok) return null;
+          return r.json();
+        })
+      );
+      return results.filter(Boolean) as { id: string, title: string, cover: string, tracks: Track[] }[];
+    }
+  });
   const trendingQuery = useQuery({
     queryKey: ["trending"],
     queryFn: async () => {
@@ -126,9 +145,9 @@ export default function Home() {
       <HeroSection tracks={trendingTracks} isLoading={trendingQuery.isLoading} />
       
       {suggestedQuery.isLoading ? (
-        <div className="px-6 py-4">
-          <div className="h-6 w-64 bg-white/5 animate-pulse rounded mb-4" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="px-4 md:px-6 py-4">
+          <div className="h-6 w-48 md:w-64 bg-white/5 animate-pulse rounded mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-16 bg-white/5 animate-pulse rounded-2xl" />
             ))}
@@ -141,9 +160,9 @@ export default function Home() {
       )}
 
       {trendingQuery.isLoading ? (
-        <div className="px-6 py-4">
-          <div className="h-6 w-48 bg-white/5 animate-pulse rounded mb-4" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="px-4 md:px-6 py-4">
+          <div className="h-6 w-40 md:w-48 bg-white/5 animate-pulse rounded mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
             {Array.from({ length: 9 }).map((_, i) => (
               <div key={i} className="h-16 bg-white/5 animate-pulse rounded-2xl" />
             ))}
@@ -154,9 +173,9 @@ export default function Home() {
       )}
 
       {bestHindiQuery.isLoading ? (
-        <div className="px-6 py-4 mt-4">
-          <div className="h-6 w-48 bg-white/5 animate-pulse rounded mb-4" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="px-4 md:px-6 py-4 mt-4">
+          <div className="h-6 w-40 md:w-48 bg-white/5 animate-pulse rounded mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-16 bg-white/5 animate-pulse rounded-2xl" />
             ))}
@@ -169,9 +188,9 @@ export default function Home() {
       )}
 
       {globalHitsQuery.isLoading ? (
-        <div className="px-6 py-4 mt-4">
-          <div className="h-6 w-48 bg-white/5 animate-pulse rounded mb-4" />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="px-4 md:px-6 py-4 mt-4">
+          <div className="h-6 w-40 md:w-48 bg-white/5 animate-pulse rounded mb-4" />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="aspect-[4/3] bg-white/5 animate-pulse rounded-3xl" />
             ))}
@@ -184,7 +203,14 @@ export default function Home() {
       <PlaylistCards title="Original Hindi Playlists" playlists={ORIGINAL_HINDI_PLAYLISTS} />
       
       <div className="mt-8">
-        <PlaylistCards title="Trending Playlists" playlists={TRENDING_PLAYLISTS} />
+        <PlaylistCards title="Trending Playlists" playlists={featuredPlaylistsQuery.data?.slice(0, 4).map(p => ({
+          id: p.id,
+          title: p.title,
+          creator: "YouTube Music",
+          cover: p.cover,
+          trackQuery: "",
+          playlistId: p.id
+        })) || TRENDING_PLAYLISTS} />
       </div>
     </div>
   );

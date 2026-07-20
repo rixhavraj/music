@@ -62,3 +62,15 @@ export async function getTrackById(id: string): Promise<Track | null> {
   return track;
 }
 
+export async function getPlaylistById(id: string): Promise<{ id: string, title: string, cover: string, tracks: Track[] } | null> {
+  const source = getMusicSource();
+  if (source.getPlaylist) {
+    const playlist = await source.getPlaylist(id);
+    if (!playlist) return null;
+    playlist.tracks = filterOriginalTracks(playlist.tracks);
+    addToCatalogCache(playlist.tracks);
+    return playlist;
+  }
+  return null;
+}
+

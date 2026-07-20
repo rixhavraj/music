@@ -26,6 +26,7 @@ type PlayerState = {
   sleepTimer: SleepTimer;
   sleepTimerEndsAt: number | null; // epoch ms
   bufferedPercent: number;          // 0–100 from HTMLAudioElement.buffered
+  playedHistory: { id: string; timestamp: number }[]; // internal strict cache for no-repeats
   // Actions
   setQueue: (tracks: Track[]) => void;
   playTrack: (track: Track, queue?: Track[]) => void;
@@ -69,6 +70,7 @@ export const usePlayerStore = create<PlayerState>()(
       sleepTimer: "off",
       sleepTimerEndsAt: null,
       bufferedPercent: 0,
+      playedHistory: [],
 
       setQueue: (tracks) => set({ queue: tracks }),
 
@@ -80,7 +82,13 @@ export const usePlayerStore = create<PlayerState>()(
           recentlyPlayed: [
             track,
             ...state.recentlyPlayed.filter((r) => r.id !== track.id),
-          ].slice(0, 20),
+          ].slice(0, 50),
+          playedHistory: [
+            { id: track.id, timestamp: Date.now() },
+            ...state.playedHistory.filter(
+              (h) => h.id !== track.id && Date.now() - h.timestamp < 12 * 60 * 60 * 1000 // Keep for 12 hours
+            ),
+          ].slice(0, 100),
           bufferedPercent: 0,
         })),
 
@@ -91,7 +99,7 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       playNext: async () => {
-        const { currentTrack, queue, repeat } = get();
+        const { currentTrack, queue, repeat, shuffle, playedHistory } = get();
         if (!currentTrack) return;
 
         if (repeat === "one") {
@@ -101,63 +109,93 @@ export const usePlayerStore = create<PlayerState>()(
 
         // Record that the current track ended (full listen = ratio 1.0)
         moodEngine.recordPlay(currentTrack, 1.0);
+        let nextTrack: Track | null = null;
+        
+        // Exclude all previously played songs in the cache
+        const playedIds = new Set(playedHistory.map((h) => h.id));
+        playedIds.add(currentTrack.id);
 
-        // 1. Try the MoodPlayer engine's catalog first (instant, in-memory)
-        moodEngine.updateCatalog(queue);
-        let nextTrack: Track | null = moodEngine.pickNextSong(currentTrack.id);
+        if (shuffle) {
+          const unplayed = queue.filter((t) => !playedIds.has(t.id));
 
-        // 2. If engine has nothing or catalog is tiny, fetch fresh mood-matched tracks
-        if (!nextTrack) {
-          try {
-            const mood = moodEngine.getMood();
-            // Map mood point to a text query
-            let query = "popular songs";
-            const { valence, energy } = mood;
-            const title  = currentTrack.title.toLowerCase();
-            const artist = currentTrack.artist.toLowerCase();
-            
-            const hindiKeywords = ["dil","ishq","pyar","arijit","shreya","jubin","atif","pritam","rahman","kumar","udit","sonu","neha","bollywood","hindi","darshan","anuv"];
-            const punjabiKeywords = ["jatt","punjabi","diljit","ap dhillon","shubh","moosewala","karan aujla","guru randhawa"];
-            const romanceKeywords = ["love","romance","romantic","ishq","pyar","heart","mera","dil"];
-            
-            const isHindi = hindiKeywords.some(k => title.includes(k) || artist.includes(k));
-            const isPunjabi = punjabiKeywords.some(k => title.includes(k) || artist.includes(k));
-            const isRomance = romanceKeywords.some(k => title.includes(k) || artist.includes(k));
-
-            if (isRomance || (valence > 0.65 && energy <= 0.65)) {
-              query = isHindi ? "Best Hindi romantic love songs hits" : "Top global romantic acoustic love songs";
-            } else if (valence > 0.65 && energy > 0.65) {
-              query = isHindi ? "Bollywood party dance hits 2026" : isPunjabi ? "Punjabi high energy dance hits" : "Upbeat global party pop hits";
-            } else if (valence < 0.4 && energy < 0.4) {
-              query = isHindi ? "Hindi sad emotional heartbreak songs" : "Global sad melodic songs";
-            } else if (energy > 0.7) {
-              query = isHindi ? "Bollywood workout gym motivation" : "Global workout motivation songs";
-            } else {
-              query = isHindi ? "Trending Hindi Hits" : "Trending Global Pop Hits";
+          if (unplayed.length > 0) {
+            nextTrack = unplayed[Math.floor(Math.random() * unplayed.length)];
+          } else {
+            try {
+              const res = await fetch(`/api/search?q=Trending%20Most%20Popular%20Hits&limit=30`);
+              if (res.ok) {
+                const data = await res.json();
+                const freshTracks = data.tracks as Track[];
+                const unplayedFresh = freshTracks.filter((t) => !playedIds.has(t.id));
+                if (unplayedFresh.length > 0) {
+                  set((state) => ({
+                    queue: [...state.queue, ...freshTracks.filter((t) => !state.queue.some((q) => q.id === t.id))],
+                  }));
+                  nextTrack = unplayedFresh[Math.floor(Math.random() * unplayedFresh.length)];
+                }
+              }
+            } catch (e) {
+              console.error("[Shuffle] fetch failed:", e);
             }
-
-            const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=25`);
-            if (res.ok) {
-              const data = await res.json();
-              const freshTracks = data.tracks as Track[];
-              // Feed new tracks into the engine
-              moodEngine.updateCatalog(freshTracks);
-              // Append to queue for continuity
-              set((state) => ({
-                queue: [...state.queue, ...freshTracks.filter((t) => !state.queue.some((q) => q.id === t.id))],
-              }));
-              nextTrack = moodEngine.pickNextSong(currentTrack.id);
-            }
-          } catch (e) {
-            console.error("[MoodPlayer] fetch failed:", e);
           }
-        }
+        } else {
+          // 1. Try the MoodPlayer engine's catalog first (instant, in-memory)
+          moodEngine.updateCatalog(queue);
+          nextTrack = moodEngine.pickNextSong(playedIds);
 
-        // 3. Hard fallback: sequential next in queue
-        if (!nextTrack && queue.length > 0) {
-          const idx = queue.findIndex((t) => t.id === currentTrack.id);
-          const next = queue[(idx + 1) % queue.length];
-          if (next && next.id !== currentTrack.id) nextTrack = next;
+          // 2. If engine has nothing or catalog is tiny, fetch fresh mood-matched tracks
+          if (!nextTrack) {
+            try {
+              const mood = moodEngine.getMood();
+              // Map mood point to a text query
+              let query = "popular songs";
+              const { valence, energy } = mood;
+              const title  = currentTrack.title.toLowerCase();
+              const artist = currentTrack.artist.toLowerCase();
+              
+              const hindiKeywords = ["dil","ishq","pyar","arijit","shreya","jubin","atif","pritam","rahman","kumar","udit","sonu","neha","bollywood","hindi","darshan","anuv"];
+              const punjabiKeywords = ["jatt","punjabi","diljit","ap dhillon","shubh","moosewala","karan aujla","guru randhawa"];
+              const romanceKeywords = ["love","romance","romantic","ishq","pyar","heart","mera","dil"];
+              
+              const isHindi = hindiKeywords.some(k => title.includes(k) || artist.includes(k));
+              const isPunjabi = punjabiKeywords.some(k => title.includes(k) || artist.includes(k));
+              const isRomance = romanceKeywords.some(k => title.includes(k) || artist.includes(k));
+
+              if (isRomance || (valence > 0.65 && energy <= 0.65)) {
+                query = isHindi ? "Best Hindi romantic love songs hits" : "Top global romantic acoustic love songs";
+              } else if (valence > 0.65 && energy > 0.65) {
+                query = isHindi ? "Bollywood party dance hits 2026" : isPunjabi ? "Punjabi high energy dance hits" : "Upbeat global party pop hits";
+              } else if (valence < 0.4 && energy < 0.4) {
+                query = isHindi ? "Hindi sad emotional heartbreak songs" : "Global sad melodic songs";
+              } else if (energy > 0.7) {
+                query = isHindi ? "Bollywood workout gym motivation" : "Global workout motivation songs";
+              } else {
+                query = isHindi ? "Trending Hindi Hits" : "Trending Global Pop Hits";
+              }
+
+              const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=25`);
+              if (res.ok) {
+                const data = await res.json();
+                const freshTracks = data.tracks as Track[];
+                // Feed new tracks into the engine
+                moodEngine.updateCatalog(freshTracks);
+                // Append to queue for continuity
+                set((state) => ({
+                  queue: [...state.queue, ...freshTracks.filter((t) => !state.queue.some((q) => q.id === t.id))],
+                }));
+                nextTrack = moodEngine.pickNextSong(playedIds);
+              }
+            } catch (e) {
+              console.error("[MoodPlayer] fetch failed:", e);
+            }
+          }
+
+          // 3. Hard fallback: sequential next in queue
+          if (!nextTrack && queue.length > 0) {
+            const idx = queue.findIndex((t) => t.id === currentTrack.id);
+            const next = queue[(idx + 1) % queue.length];
+            if (next && next.id !== currentTrack.id) nextTrack = next;
+          }
         }
 
         if (nextTrack) {
@@ -224,6 +262,7 @@ export const usePlayerStore = create<PlayerState>()(
         crossfadeDuration: state.crossfadeDuration,
         sleepTimer: state.sleepTimer,
         sleepTimerEndsAt: state.sleepTimerEndsAt,
+        playedHistory: state.playedHistory || [],
       }),
     }
   )

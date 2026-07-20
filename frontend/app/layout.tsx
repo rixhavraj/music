@@ -6,18 +6,19 @@ import "./globals.css";
 import { LeftSidebar } from "@/components/layout/LeftSidebar";
 import { RightSidebar } from "@/components/layout/RightSidebar";
 import { BottomPlayer } from "@/components/layout/BottomPlayer";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 const inter = Inter({
   subsets: ["latin"],
   display: "swap"
 });
 
 export const metadata: Metadata = {
-  title: "Personal Music PWA",
-  description: "A fast personal music streaming PWA scaffold.",
+  title: "Lofiëra — Your vibe, your music",
+  description: "A fast personal music streaming PWA with mood-based discovery.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "Music PWA",
+    title: "Lofiëra",
     statusBarStyle: "black-translucent"
   }
 };
@@ -31,21 +32,27 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} h-screen w-full flex flex-col overflow-hidden bg-brand-dark p-2 gap-2`}>
+      <body className={`${inter.className} h-screen w-full flex flex-col overflow-hidden bg-brand-dark md:p-2 md:gap-2`}>
         <Providers>
-          {/* Main 3-column area */}
-          <div className="flex-1 flex min-h-0 gap-2 overflow-hidden">
+          {/* Main layout area */}
+          <div className="flex-1 flex min-h-0 md:gap-2 overflow-hidden">
+            {/* Left sidebar — hidden on mobile, visible on tablet+ */}
             <LeftSidebar />
             
-            <main className="flex-1 bg-brand-surface rounded-3xl overflow-y-auto scrollbar-hide border border-white/5 relative">
+            {/* Main content — full width on mobile, flex-1 on tablet+ */}
+            <main className="flex-1 bg-brand-surface md:rounded-3xl overflow-y-auto scrollbar-hide md:border md:border-white/5 relative pb-36 md:pb-10">
               {children}
             </main>
             
+            {/* Right sidebar — desktop only */}
             <RightSidebar />
           </div>
           
-          {/* Bottom Player */}
+          {/* Desktop bottom player — hidden on mobile */}
           <BottomPlayer />
+          
+          {/* Mobile bottom nav — visible on mobile only */}
+          <MobileBottomNav />
           
           <ServiceWorkerRegister />
         </Providers>

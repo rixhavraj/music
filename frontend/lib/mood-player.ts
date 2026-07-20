@@ -225,14 +225,14 @@ export class MoodPlayer {
 
   /**
    * Pick the next song via softmax-weighted random sampling toward the
-   * current inferred mood.  Never returns the currently-playing track.
+   * current inferred mood. Never returns a track in the exclude list.
    * Returns the original AppTrack (not the internal MoodTrack).
    */
-  pickNextSong(excludeTrackId?: string): AppTrack | null {
+  pickNextSong(excludeTrackIds: Set<string>): AppTrack | null {
     const mood = this.getMood();
     const recentIds = this.history.slice(0, 8).map((r) => r.track.id);
 
-    const candidates = this.catalog.filter((t) => t.id !== excludeTrackId);
+    const candidates = this.catalog.filter((t) => !excludeTrackIds.has(t.id));
     if (candidates.length === 0) return null;
 
     const scores  = candidates.map((t) => this.scoreTrack(t, mood, recentIds));
