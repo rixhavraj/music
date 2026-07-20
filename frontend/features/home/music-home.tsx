@@ -37,7 +37,6 @@ import {
 } from "lucide-react";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { PlayerShell } from "@/features/player/player-shell";
 import { usePlayerStore } from "@/store/player-store";
 import { TrackArt } from "@/components/track-art";
 import { SearchPanelV2 } from "@/features/search/search-panel-v2";
@@ -1511,7 +1510,6 @@ export function MusicHome() {
       </div>
 
       {/* Single Player Shell instance rendered at root level to avoid duplicate audio/echo issues */}
-      <PlayerShell />
     </div>
   );
 }

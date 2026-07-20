@@ -1,5 +1,5 @@
 const STATIC_CACHE = "music-pwa-static-v1";
-const AUDIO_CACHE = "music-pwa-audio-v2";
+const AUDIO_CACHE = "chillguys-audio-v1";
 const STATIC_ASSETS = ["/", "/manifest.webmanifest", "/icons/icon.svg"];
 const MAX_AUDIO_ITEMS = 24;
 
@@ -28,7 +28,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.pathname.startsWith("/api/stream/")) {
-    event.respondWith(fetch(event.request));
+    event.respondWith(streamNetworkFirst(event.request));
     return;
   }
 
@@ -72,6 +72,16 @@ async function networkFirst(request) {
   } catch {
     const cached = await cache.match(request);
     return cached || Response.json({ error: "Offline" }, { status: 503 });
+  }
+}
+
+async function streamNetworkFirst(request) {
+  try {
+    return await fetch(request);
+  } catch {
+    const cache = await caches.open(AUDIO_CACHE);
+    const cached = await cache.match(request, { ignoreSearch: true });
+    return cached || Response.json({ error: "Offline audio is unavailable" }, { status: 503 });
   }
 }
 

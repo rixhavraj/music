@@ -70,9 +70,10 @@ export async function cacheTrack(
       }
     }
 
-    const blob = new Blob(chunks as BlobPart[], { type: "audio/webm" });
+    const contentType = response.headers.get("content-type") || "audio/mpeg";
+    const blob = new Blob(chunks as BlobPart[], { type: contentType });
     const cachedResponse = new Response(blob, {
-      headers: { "Content-Type": "audio/webm", "Content-Length": String(blob.size) },
+      headers: { "Content-Type": contentType, "Content-Length": String(blob.size) },
     });
 
     const cache = await caches.open(CACHE_NAME);

@@ -69,27 +69,29 @@ export function applyQueueRules(
 
   // Enforce max consecutive same-artist rule
   const result: Track[] = [];
-  const artistRunCount = new Map<string, number>();
+  const deferred: Track[] = [];
+  let lastArtist: string | null = null;
+  let consecutiveCount = 0;
 
   for (const track of filtered) {
     const artist = track.artist;
-    const run = artistRunCount.get(artist) ?? 0;
-    if (run >= maxConsecutiveSameArtist) {
+    if (artist === lastArtist && consecutiveCount >= maxConsecutiveSameArtist) {
       // Push it to the back (add to end of remaining)
-      filtered.push(track);
+      deferred.push(track);
       continue;
     }
     // Reset other artists when we switch
     if (result.length > 0 && result[result.length - 1].artist !== artist) {
       // No reset needed for Map — just track the new one
     }
-    artistRunCount.set(artist, run + 1);
+    consecutiveCount = artist === lastArtist ? consecutiveCount + 1 : 1;
+    lastArtist = artist;
     result.push(track);
 
     if (result.length >= tracks.length) break; // safety valve
   }
 
-  return result;
+  return [...result, ...deferred];
 }
 
 // ─── Recommendation playlists ─────────────────────────────────────────────────

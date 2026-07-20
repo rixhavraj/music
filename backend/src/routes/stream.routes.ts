@@ -52,7 +52,7 @@ router.get("/stream/:id", optionalAuth, async (req, res) => {
         await pipeYoutubeStream(directUrl, req.headers.range, res);
       } catch (streamErr: any) {
         // If forbidden or expired, clear cache, fetch new url and retry once
-        if (streamErr.statusCode === 403 || streamErr.statusCode === 410) {
+        if ([403, 404, 410].includes(streamErr.statusCode)) {
           console.log(`Stream URL expired for ${parsed.data}. Invaliding cache and retrying...`);
           invalidateStreamUrl(parsed.data);
           directUrl = await getCachedStreamUrl(parsed.data);

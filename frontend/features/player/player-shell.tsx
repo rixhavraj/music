@@ -320,7 +320,7 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
   };
 
   return (
-    <footer className={visuallyHidden ? "sr-only" : "fixed inset-x-0 bottom-0 z-40 flex w-full justify-center pointer-events-auto"}>
+    <footer className={visuallyHidden ? "sr-only" : "absolute inset-x-0 bottom-4 z-40 flex w-full justify-center pointer-events-none px-4 md:px-8"}>
       <audio
         ref={audioRef}
         crossOrigin="anonymous"

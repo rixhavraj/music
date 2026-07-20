@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { RefreshCw, Download, WifiOff } from "lucide-react";
+import { RefreshCw, Home, WifiOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -104,11 +104,11 @@ export default function OfflinePage() {
           {isRetrying ? "Retrying..." : "Retry"}
         </button>
         <Link
-          href="/downloads"
+          href="/"
           className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-brand-highlight border border-white/10 text-white font-semibold rounded-2xl hover:bg-white/5 hover:border-white/20 active:scale-[0.98] transition-all text-sm md:text-base"
         >
-          <Download className="w-4 h-4 md:w-5 md:h-5" />
-          Go to Downloads
+          <Home className="w-4 h-4 md:w-5 md:h-5" />
+          Go Home
         </Link>
       </motion.div>
     </div>

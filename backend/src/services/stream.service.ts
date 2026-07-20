@@ -1,6 +1,6 @@
 import { Response } from "express";
 
-const YTDLP_PATH = "C:\\Users\\rixha\\AppData\\Local\\Microsoft\\WinGet\\Links\\yt-dlp.exe";
+const YTDLP_PATH = process.env.YTDLP_PATH || "yt-dlp";
 
 interface StreamCache {
   url: string;
@@ -124,7 +124,7 @@ export function pipeYoutubeStream(directUrl: string, rangeHeader: string | undef
       }
 
       const statusCode = youtubeRes.statusCode || 200;
-      if (statusCode === 403 || statusCode === 410) {
+      if (statusCode >= 400) {
         cleanup();
         const err = new Error(`HTTP ${statusCode} from YouTube`);
         (err as any).statusCode = statusCode;

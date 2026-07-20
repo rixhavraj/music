@@ -5,7 +5,7 @@ import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import "./globals.css";
 import { LeftSidebar } from "@/components/layout/LeftSidebar";
 import { RightSidebar } from "@/components/layout/RightSidebar";
-import { BottomPlayer } from "@/components/layout/BottomPlayer";
+import { PlayerShell } from "@/features/player/player-shell";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 const inter = Inter({
   subsets: ["latin"],
@@ -39,17 +39,19 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             {/* Left sidebar — hidden on mobile, visible on tablet+ */}
             <LeftSidebar />
             
-            {/* Main content — full width on mobile, flex-1 on tablet+ */}
-            <main className="flex-1 bg-brand-surface md:rounded-3xl overflow-y-auto scrollbar-hide md:border md:border-white/5 relative pb-36 md:pb-10">
-              {children}
-            </main>
+            {/* Main content wrapper */}
+            <div className="flex-1 relative flex flex-col min-w-0">
+              <main className="flex-1 bg-brand-surface md:rounded-3xl overflow-y-auto scrollbar-hide md:border md:border-white/5 relative pb-36 md:pb-24">
+                {children}
+              </main>
+              
+              {/* Bottom player positioned within main content area */}
+              <PlayerShell />
+            </div>
             
             {/* Right sidebar — desktop only */}
             <RightSidebar />
           </div>
-          
-          {/* Desktop bottom player — hidden on mobile */}
-          <BottomPlayer />
           
           {/* Mobile bottom nav — visible on mobile only */}
           <MobileBottomNav />
