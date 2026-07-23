@@ -11,6 +11,7 @@ const BACKEND_URL =
   "https://music-dqpp.onrender.com";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 async function handleProxy(req: NextRequest) {
   try {
@@ -23,7 +24,9 @@ async function handleProxy(req: NextRequest) {
     }
 
     const url = new URL(req.url);
-    const backendPath = url.pathname + url.search;
+    // The catch-all route is mounted below /api. Keep the original path so
+    // Express receives /api/... (the backend router is mounted at /api).
+    const backendPath = `${url.pathname}${url.search}`;
     
     const targetUrl = new URL(
       backendPath,
@@ -32,6 +35,8 @@ async function handleProxy(req: NextRequest) {
 
     const headers = new Headers(req.headers);
     headers.delete("host"); // Let the fetch client handle the host header
+    headers.delete("connection");
+    headers.delete("content-length");
 
     const fetchOptions: RequestInit & { duplex?: "half" } = {
       method: req.method,
@@ -51,6 +56,13 @@ async function handleProxy(req: NextRequest) {
     // Remove headers that might cause issues when proxying
     responseHeaders.delete("content-encoding");
     responseHeaders.delete("transfer-encoding");
+
+    // These headers are required for seeking and for Web Audio consumers of
+    // the proxied stream. They are safe to expose because this is same-origin
+    // with the Next.js app.
+    if (response.headers.has("accept-ranges")) {
+      responseHeaders.set("Accept-Ranges", response.headers.get("accept-ranges")!);
+    }
 
     return new NextResponse(response.body, {
       status: response.status,

@@ -22,14 +22,19 @@ const PORT = process.env.PORT || 3001;
 const ALLOWED_ORIGINS = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
-  "https://music-tau-blush.vercel.app",
+  "https://music-orean.vercel.app",
   ...(process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : []),
 ];
+
+const isAllowedOrigin = (origin?: string) =>
+  !origin ||
+  ALLOWED_ORIGINS.includes(origin) ||
+  /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, Postman, same-origin server calls)
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
       callback(new Error(`CORS blocked: ${origin}`));
