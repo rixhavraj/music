@@ -246,8 +246,9 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
       }
     }
     
-    setPlaying(false);
-  }, [finishIfNearEnd, setPlaying, currentTrack]);
+    const { handleStreamError, setPlaying } = usePlayerStore.getState();
+    handleStreamError();
+  }, [finishIfNearEnd, currentTrack]);
 
   // ─── Seek ────────────────────────────────────────────────────────────────
   function seekAt(clientX: number) {

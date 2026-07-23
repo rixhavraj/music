@@ -26,17 +26,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "i.ytimg.com" }
     ]
   },
-  async rewrites() {
-    const backendUrl = process.env.BACKEND || "http://127.0.0.1:3001";
-
-    const destUrl = backendUrl.endsWith("/") ? backendUrl.slice(0, -1) : backendUrl;
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${destUrl}/api/:path*`
-      }
-    ];
-  },
   async headers() {
     return [
       {

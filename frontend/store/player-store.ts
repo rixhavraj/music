@@ -45,12 +45,46 @@ type PlayerState = {
   setSleepTimer: (timer: SleepTimer) => void;
   clearSleepTimer: () => void;
   setBufferedPercent: (percent: number) => void;
+  handleStreamError: () => void;
 };
 
 // ---------------------------------------------------------------------------
 // Singleton MoodPlayer engine — lives for the lifetime of the app session
 // ---------------------------------------------------------------------------
 const moodEngine = new MoodPlayer([]);
+
+// Search providers often return several versions of the same title. Keep the
+// title comparison conservative so a different artist cannot replace the
+// song the listener just chose.
+function normalizeMusicText(value: string | undefined): string {
+  return (value ?? "")
+    .toLowerCase()
+    .replace(/\([^)]*\)|\[[^\]]*\]|\{[^}]*\}/g, " ")
+    .replace(/\b(official|video|audio|lyrics?|full|remix|slowed|reverb|version|cover)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function sameMusicTitle(a: Track, b: Track): boolean {
+  const left = normalizeMusicText(a.title);
+  const right = normalizeMusicText(b.title);
+  return Boolean(left && right && (left === right || left.includes(right) || right.includes(left)));
+}
+
+function trackAffinity(track: Track, current: Track): number {
+  const sameArtist = normalizeMusicText(track.artist) === normalizeMusicText(current.artist);
+  const sameGenre = normalizeMusicText(track.mood) === normalizeMusicText(current.mood);
+  // Artist is the strongest signal; genre keeps radio playback coherent.
+  return (sameArtist ? 100 : 0) + (sameGenre ? 25 : 0) + Math.random() * 4;
+}
+
+function bestNextTrack(candidates: Track[], current: Track, playedIds: Set<string>): Track | null {
+  const eligible = candidates.filter((track) =>
+    track.id !== current.id && !playedIds.has(track.id) && !sameMusicTitle(track, current)
+  );
+  if (!eligible.length) return null;
+  return [...eligible].sort((a, b) => trackAffinity(b, current) - trackAffinity(a, current))[0];
+}
 
 
 export const usePlayerStore = create<PlayerState>()(
@@ -86,11 +120,17 @@ export const usePlayerStore = create<PlayerState>()(
           playedHistory: [
             { id: track.id, timestamp: Date.now() },
             ...state.playedHistory.filter(
-              (h) => h.id !== track.id && Date.now() - h.timestamp < 12 * 60 * 60 * 1000 // Keep for 12 hours
+              (h) => h.id !== track.id && Date.now() - h.timestamp < 12 * 60 * 60 * 1000
             ),
           ].slice(0, 100),
           bufferedPercent: 0,
         })),
+
+      handleStreamError: () => {
+        // If a track fails to stream, auto-skip to the next one
+        console.error("Stream failed, skipping to next track...");
+        get().playNext();
+      },
 
       // Alias so music-home.tsx can call either play() or playTrack()
       play: (track, queue) => {
@@ -116,22 +156,22 @@ export const usePlayerStore = create<PlayerState>()(
         playedIds.add(currentTrack.id);
 
         if (shuffle) {
-          const unplayed = queue.filter((t) => !playedIds.has(t.id));
+          const unplayed = queue.filter((t) => !playedIds.has(t.id) && !sameMusicTitle(t, currentTrack));
 
           if (unplayed.length > 0) {
-            nextTrack = unplayed[Math.floor(Math.random() * unplayed.length)];
+            nextTrack = bestNextTrack(unplayed, currentTrack, playedIds);
           } else {
             try {
               const res = await fetch(`/api/search?q=Trending%20Most%20Popular%20Hits&limit=30`);
               if (res.ok) {
                 const data = await res.json();
                 const freshTracks = data.tracks as Track[];
-                const unplayedFresh = freshTracks.filter((t) => !playedIds.has(t.id));
+                const unplayedFresh = freshTracks.filter((t) => !playedIds.has(t.id) && !sameMusicTitle(t, currentTrack));
                 if (unplayedFresh.length > 0) {
                   set((state) => ({
                     queue: [...state.queue, ...freshTracks.filter((t) => !state.queue.some((q) => q.id === t.id))],
                   }));
-                  nextTrack = unplayedFresh[Math.floor(Math.random() * unplayedFresh.length)];
+                  nextTrack = bestNextTrack(unplayedFresh, currentTrack, playedIds);
                 }
               }
             } catch (e) {
@@ -141,7 +181,10 @@ export const usePlayerStore = create<PlayerState>()(
         } else {
           // 1. Try the MoodPlayer engine's catalog first (instant, in-memory)
           moodEngine.updateCatalog(queue);
-          nextTrack = moodEngine.pickNextSong(playedIds);
+          // Do not let the mood engine pick another artist's version of the
+          // current title. Prefer a different song by the same artist, then
+          // another song from the current genre.
+          nextTrack = bestNextTrack(queue, currentTrack, playedIds);
 
           // 2. If engine has nothing or catalog is tiny, fetch fresh mood-matched tracks
           if (!nextTrack) {
@@ -173,8 +216,23 @@ export const usePlayerStore = create<PlayerState>()(
                 query = isHindi ? "Trending Hindi Hits" : "Trending Global Pop Hits";
               }
 
-              const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=25`);
-              if (res.ok) {
+              const artistQuery = `${currentTrack.artist} best songs popular hits`;
+              const artistRes = await fetch(`/api/search?q=${encodeURIComponent(artistQuery)}&limit=25`);
+              if (artistRes.ok) {
+                const artistTracks = (await artistRes.json()).tracks as Track[];
+                nextTrack = bestNextTrack(artistTracks, currentTrack, playedIds);
+                if (nextTrack) {
+                  set((state) => ({
+                    queue: [...state.queue, ...artistTracks.filter((t) => !state.queue.some((q) => q.id === t.id))],
+                  }));
+                }
+              }
+
+              // If the artist search has no usable result, continue with a
+              // genre/mood search so Haryanavi stays Haryanavi, Punjabi stays
+              // Punjabi, etc.
+              const res = nextTrack ? null : await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=25`);
+              if (res?.ok) {
                 const data = await res.json();
                 const freshTracks = data.tracks as Track[];
                 // Feed new tracks into the engine
@@ -183,7 +241,7 @@ export const usePlayerStore = create<PlayerState>()(
                 set((state) => ({
                   queue: [...state.queue, ...freshTracks.filter((t) => !state.queue.some((q) => q.id === t.id))],
                 }));
-                nextTrack = moodEngine.pickNextSong(playedIds);
+                nextTrack = bestNextTrack(freshTracks, currentTrack, playedIds);
               }
             } catch (e) {
               console.error("[MoodPlayer] fetch failed:", e);
@@ -194,7 +252,7 @@ export const usePlayerStore = create<PlayerState>()(
           if (!nextTrack && queue.length > 0) {
             const idx = queue.findIndex((t) => t.id === currentTrack.id);
             const next = queue[(idx + 1) % queue.length];
-            if (next && next.id !== currentTrack.id) nextTrack = next;
+            if (next && next.id !== currentTrack.id && !sameMusicTitle(next, currentTrack)) nextTrack = next;
           }
         }
 

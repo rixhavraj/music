@@ -11,6 +11,16 @@ pnpm dev
 
 The default source is `mock`, so the app runs without external services. To connect GaanaPy later, copy `.env.example` to `.env.local`, set `MUSIC_SOURCE=gaanapy`, and configure `GAANAPY_URL`.
 
+## Production deployment
+
+Deploy `backend` as a persistent Node service (Render, Railway, Fly.io, or a VPS), then add this Vercel environment variable for the frontend:
+
+```text
+BACKEND=https://your-deployed-backend.example.com
+```
+
+The backend must be reachable over HTTPS and expose `/api/health`, `/api/search`, `/api/track/:id/play`, and `/api/stream/:id`. Do not use `127.0.0.1` or `localhost` for `BACKEND` in Vercel.
+
 ## Verify
 
 ```bash
