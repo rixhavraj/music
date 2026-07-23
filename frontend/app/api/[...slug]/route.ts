@@ -28,7 +28,7 @@ async function handleProxy(req: NextRequest) {
     const headers = new Headers(req.headers);
     headers.delete("host"); // Let the fetch client handle the host header
 
-    const fetchOptions: RequestInit = {
+    const fetchOptions: RequestInit & { duplex?: "half" } = {
       method: req.method,
       headers,
       redirect: "manual",
@@ -37,7 +37,7 @@ async function handleProxy(req: NextRequest) {
     if (req.method !== "GET" && req.method !== "HEAD") {
       fetchOptions.body = req.body;
       // Note: Duplex is required for streaming bodies in Node.js fetch
-      (fetchOptions as any).duplex = "half"; 
+      fetchOptions.duplex = "half";
     }
 
     const response = await fetch(targetUrl.toString(), fetchOptions);
