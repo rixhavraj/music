@@ -3,7 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 // BACKEND is the URL of the persistent Express service. Vercel cannot reach
 // a localhost process from a serverless function, so fail clearly in
 // production instead of silently proxying to 127.0.0.1.
-const BACKEND_URL = process.env.BACKEND || process.env.BACKEND_URL;
+const BACKEND_URL =
+  process.env.BACKEND ||
+  process.env.BACKEND_URL ||
+  // Production backend currently hosted on Render. Keep the environment
+  // variable override so the service can be moved without a frontend change.
+  "https://music-dqpp.onrender.com";
 
 export const dynamic = "force-dynamic";
 

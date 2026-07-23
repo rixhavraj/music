@@ -13,7 +13,7 @@ The default source is `mock`, so the app runs without external services. To conn
 
 ## Production deployment
 
-Deploy `backend` as a persistent Node service (Render, Railway, Fly.io, or a VPS), then add this Vercel environment variable for the frontend:
+Deploy `backend` as a persistent Node service (Render, Railway, Fly.io, or a VPS). The frontend has the current Render service as a fallback, but you should set this Vercel environment variable when using a different backend:
 
 ```text
 BACKEND=https://your-deployed-backend.example.com
