@@ -1,6 +1,21 @@
+import { existsSync } from "fs";
+import path from "path";
+import { execFile } from "child_process";
 import { Response } from "express";
 
-const YTDLP_PATH = process.env.YTDLP_PATH || "./yt-dlp";
+function resolveYtDlpPath() {
+  if (process.env.YTDLP_PATH) return process.env.YTDLP_PATH;
+  const binaryName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
+  const candidates = [
+    path.resolve(process.cwd(), binaryName),
+    path.resolve(process.cwd(), "backend", binaryName),
+    path.resolve(__dirname, "..", "..", binaryName),
+  ];
+
+  return candidates.find((candidate) => existsSync(candidate)) || "yt-dlp";
+}
+
+const YTDLP_PATH = resolveYtDlpPath();
 
 interface StreamCache {
   url: string;
@@ -10,22 +25,34 @@ const streamUrlCache = new Map<string, StreamCache>();
 
 export async function getCachedStreamUrl(id: string): Promise<string> {
   const cached = streamUrlCache.get(id);
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.url;
-  }
-  
+  if (cached && cached.expiresAt > Date.now()) return cached.url;
+
   return new Promise((resolve, reject) => {
-    const { exec } = require("child_process");
-    exec(`"${YTDLP_PATH}" -g --format "bestaudio[ext=m4a]/bestaudio/best" "https://www.youtube.com/watch?v=${id}"`, (err: any, stdout: string) => {
-      if (err || !stdout.trim()) {
-        reject(err || new Error("No URL returned from yt-dlp"));
+    const args = [
+      "-g",
+      "--no-playlist",
+      "--format",
+      "bestaudio[ext=m4a]/bestaudio/best",
+      "--extractor-args",
+      "youtube:player_client=android,web",
+    ];
+
+    if (process.env.YTDLP_COOKIES_PATH) {
+      args.push("--cookies", process.env.YTDLP_COOKIES_PATH);
+    } else if (process.env.YTDLP_COOKIES_FROM_BROWSER) {
+      args.push("--cookies-from-browser", process.env.YTDLP_COOKIES_FROM_BROWSER);
+    }
+
+    args.push("https://www.youtube.com/watch?v=" + id);
+
+    execFile(YTDLP_PATH, args, { timeout: 45000, windowsHide: true }, (err, stdout, stderr) => {
+      const directUrl = stdout.trim().split(/\r?\n/)[0];
+      if (err || !directUrl) {
+        const message = stderr.trim() || (err && err.message) || "No URL returned from yt-dlp";
+        reject(new Error("yt-dlp failed for " + id + " using " + YTDLP_PATH + ": " + message));
         return;
       }
-      const directUrl = stdout.trim();
-      streamUrlCache.set(id, {
-        url: directUrl,
-        expiresAt: Date.now() + 30 * 60 * 1000, // 30 minutes cache
-      });
+      streamUrlCache.set(id, { url: directUrl, expiresAt: Date.now() + 30 * 60 * 1000 });
       resolve(directUrl);
     });
   });

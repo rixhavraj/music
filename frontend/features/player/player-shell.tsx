@@ -213,15 +213,15 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
 
   const finishIfNearEnd = useCallback(() => {
     const audio = audioRef.current;
-    const audioDuration = audio && Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : duration;
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return false;
 
-    if (audio && audioDuration > 0 && audioDuration - audio.currentTime <= 2) {
+    if (audio.duration - audio.currentTime <= 2) {
       finishCurrentTrack();
       return true;
     }
 
     return false;
-  }, [duration, finishCurrentTrack]);
+  }, [finishCurrentTrack]);
 
   const onPlaybackError = useCallback(() => {
     if (finishIfNearEnd()) return;
@@ -251,10 +251,12 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
   }, [finishIfNearEnd, currentTrack]);
 
   // ─── Seek ────────────────────────────────────────────────────────────────
-  function seekAt(clientX: number) {
-    const bar = seekRef.current, audio = audioRef.current;
+  function seekAt(clientX: number, barElement?: HTMLElement) {
+    const bar = barElement || seekRef.current;
+    const audio = audioRef.current;
     if (!bar || !audio || !currentTrack) return;
     const r  = bar.getBoundingClientRect();
+    if (r.width === 0) return;
     const rt = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
     const t  = (Number.isFinite(duration) && duration > 0) ? duration : (currentTrack.duration || 0);
     if (t > 0) { audio.currentTime = rt * t; setProgress(rt * t); }
@@ -292,13 +294,13 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
       <div
         ref={seekRef}
         className={`flex items-end gap-[2.5px] cursor-pointer select-none min-w-0 overflow-hidden ${className}`}
-        onMouseDown={(e) => { setDragging(true); seekAt(e.clientX); }}
-        onMouseMove={(e) => { if (dragging) seekAt(e.clientX); }}
+        onMouseDown={(e) => { setDragging(true); seekAt(e.clientX, e.currentTarget); }}
+        onMouseMove={(e) => { if (dragging) seekAt(e.clientX, e.currentTarget); }}
         onMouseUp={() => setDragging(false)}
         onMouseLeave={() => setDragging(false)}
-        onTouchStart={(e) => seekAt(e.touches[0].clientX)}
-        onTouchMove={(e) => seekAt(e.touches[0].clientX)}
-        onClick={(e) => seekAt(e.clientX)}
+        onTouchStart={(e) => seekAt(e.touches[0].clientX, e.currentTarget)}
+        onTouchMove={(e) => seekAt(e.touches[0].clientX, e.currentTarget)}
+        onClick={(e) => seekAt(e.clientX, e.currentTarget)}
       >
         {heights.map((h: number, i: number) => {
           const played = (i / BAR_COUNT) < (pct / 100);
@@ -434,13 +436,13 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
                     <div
                       ref={seekRef}
                       className="relative w-full py-4 cursor-pointer select-none group pointer-events-auto"
-                      onMouseDown={(e) => { e.stopPropagation(); setDragging(true); seekAt(e.clientX); }}
-                      onMouseMove={(e) => { e.stopPropagation(); if (dragging) seekAt(e.clientX); }}
+                      onMouseDown={(e) => { e.stopPropagation(); setDragging(true); seekAt(e.clientX, e.currentTarget); }}
+                      onMouseMove={(e) => { e.stopPropagation(); if (dragging) seekAt(e.clientX, e.currentTarget); }}
                       onMouseUp={(e) => { e.stopPropagation(); setDragging(false); }}
                       onMouseLeave={(e) => { e.stopPropagation(); setDragging(false); }}
-                      onTouchStart={(e) => { e.stopPropagation(); seekAt(e.touches[0].clientX); }}
-                      onTouchMove={(e) => { e.stopPropagation(); seekAt(e.touches[0].clientX); }}
-                      onClick={(e) => { e.stopPropagation(); seekAt(e.clientX); }}
+                      onTouchStart={(e) => { e.stopPropagation(); seekAt(e.touches[0].clientX, e.currentTarget); }}
+                      onTouchMove={(e) => { e.stopPropagation(); seekAt(e.touches[0].clientX, e.currentTarget); }}
+                      onClick={(e) => { e.stopPropagation(); seekAt(e.clientX, e.currentTarget); }}
                     >
                       {/* Background track line */}
                       <div className="h-[4px] bg-white/20 rounded-full w-full overflow-hidden relative">

@@ -878,6 +878,7 @@ export function MusicHome() {
                             {searchTracks.map((track, i) => (
                               <motion.div
                                 key={track.id}
+                                title={`${track.title}\nArtist: ${track.artist}${track.album ? `\nAlbum: ${track.album}` : ''}`}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.03 }}

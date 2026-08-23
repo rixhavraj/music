@@ -5,6 +5,7 @@ import type { Track } from "@/types/music";
 import { usePlayerStore } from "@/store/player-store";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { TrackArt } from "@/components/track-art";
 
 interface HeroSectionProps {
   tracks?: Track[];
@@ -67,9 +68,10 @@ export function HeroSection({ tracks = [], isLoading = false }: HeroSectionProps
   };
 
   return (
-    <section className="mb-6 md:mb-10 px-4 md:px-6 lg:px-8 pt-6 md:pt-8">
+    <>
       {/* Search Bar Container */}
-      <div className="relative mb-6 md:mb-8 max-w-xl z-50" ref={searchRef}>
+      <div className="sticky top-4 z-[60] px-4 md:px-6 lg:px-8 pt-2 md:pt-4 mb-4 md:mb-6 pointer-events-none">
+        <div className="relative max-w-xl pointer-events-auto" ref={searchRef}>
         <div className={`flex-1 bg-brand-highlight/90 backdrop-blur-xl rounded-full flex items-center px-4 py-2.5 md:py-3 border transition-all ${isSearchFocused ? "border-brand-primary shadow-[0_0_20px_rgba(29,185,84,0.3)]" : "border-white/10"}`}>
           <SearchIcon className="w-4 h-4 md:w-5 md:h-5 text-brand-muted" />
           <input 
@@ -106,11 +108,12 @@ export function HeroSection({ tracks = [], isLoading = false }: HeroSectionProps
                 {searchResults.map((track) => (
                   <div 
                     key={track.id}
+                    title={`${track.title}\nArtist: ${track.artist}${track.album ? `\nAlbum: ${track.album}` : ''}`}
                     onClick={() => handlePlaySearchResult(track)}
                     className="group flex flex-col p-3 rounded-2xl bg-brand-highlight/30 border border-white/5 hover:bg-white/10 hover:border-white/20 cursor-pointer transition-all"
                   >
                     <div className="w-full aspect-square rounded-xl overflow-hidden relative mb-3 shadow-md group-hover:shadow-xl transition-shadow">
-                      <img src={track.cover} alt={track.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <TrackArt src={track.cover} alt={track.title} size={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
                       <div className="absolute bottom-2 right-2 w-10 h-10 bg-brand-primary text-white rounded-full flex items-center justify-center translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all shadow-lg">
                         <Play className="w-5 h-5 ml-1" fill="currentColor" />
@@ -129,9 +132,11 @@ export function HeroSection({ tracks = [], isLoading = false }: HeroSectionProps
             )}
           </div>
         )}
+        </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+      <section className="mb-6 md:mb-10 px-4 md:px-6 lg:px-8 pt-2">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
         <div className="flex-1 flex flex-col justify-center">
           <p className="text-xs md:text-sm font-medium mb-2">Good evening, Rishav 👋</p>
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 md:mb-4 leading-tight">
@@ -160,7 +165,7 @@ export function HeroSection({ tracks = [], isLoading = false }: HeroSectionProps
         </div>
 
         <div className="flex-1 relative rounded-3xl overflow-hidden aspect-[16/9] lg:aspect-auto shadow-2xl">
-          <img src={tracks[0]?.cover || "https://images.unsplash.com/photo-1618331835717-801e976710b2?q=80&w=1000&auto=format&fit=crop"} alt="Hero Cover" className="absolute inset-0 w-full h-full object-cover" />
+          <TrackArt src={tracks[0]?.cover || "https://images.unsplash.com/photo-1618331835717-801e976710b2?q=80&w=1000&auto=format&fit=crop"} alt="Hero Cover" size={1200} priority className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-hero-overlay"></div>
           
           <div className="absolute bottom-4 md:bottom-6 left-4 md:left-6 right-4 md:right-6">
@@ -180,6 +185,7 @@ export function HeroSection({ tracks = [], isLoading = false }: HeroSectionProps
           </button>
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 }

@@ -253,6 +253,7 @@ export function SearchPanelV2({ onPlay }: SearchPanelV2Props) {
               {tracks.map((track, i) => (
                 <div
                   key={track.id}
+                  title={`${track.title}\nArtist: ${track.artist}${track.album ? `\nAlbum: ${track.album}` : ''}`}
                   onClick={() => onPlay(track, tracks)}
                   className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition group"
                 >

@@ -53,6 +53,14 @@ type PlayerState = {
 // ---------------------------------------------------------------------------
 const moodEngine = new MoodPlayer([]);
 
+function buildStreamUrl(track: Track): string {
+  const params = new URLSearchParams();
+  if (track.title) params.set("title", track.title);
+  if (track.artist) params.set("artist", track.artist);
+  const query = params.toString();
+  return "/api/stream/" + track.id + (query ? "?" + query : "");
+}
+
 // Search providers often return several versions of the same title. Keep the
 // title comparison conservative so a different artist cannot replace the
 // song the listener just chose.
@@ -110,7 +118,7 @@ export const usePlayerStore = create<PlayerState>()(
 
       playTrack: (track, queue) =>
         set((state) => ({
-          currentTrack: { ...track, streamUrl: track.streamUrl || `/api/stream/${track.id}` },
+          currentTrack: { ...track, streamUrl: track.streamUrl?.startsWith("http") ? track.streamUrl : buildStreamUrl(track) },
           queue: queue?.length ? queue : state.queue,
           isPlaying: true,
           recentlyPlayed: [

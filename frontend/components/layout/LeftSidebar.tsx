@@ -41,28 +41,16 @@ export function LeftSidebar() {
           <Link href="/" className={getIconLinkClass("/")} title="Home">
             <Home className="w-5 h-5" />
           </Link>
-          <Link href="/explore" className={getIconLinkClass("/explore")} title="Explore">
-            <Compass className="w-5 h-5" />
-          </Link>
-          <Link href="/radio" className={getIconLinkClass("/radio")} title="Radio">
-            <Radio className="w-5 h-5" />
-          </Link>
         </nav>
 
         <div className="w-8 h-px bg-white/10 my-2" />
 
         <nav className="flex flex-col items-center gap-1 w-full px-2">
-          <Link href="/library" className={getIconLinkClass("/library")} title="Library">
-            <Library className="w-5 h-5" />
-          </Link>
           <Link href="/playlists" className={getIconLinkClass("/playlists")} title="Playlists">
             <ListMusic className="w-5 h-5" />
           </Link>
           <Link href="/liked" className={getIconLinkClass("/liked")} title="Liked Songs">
             <Heart className="w-5 h-5" />
-          </Link>
-          <Link href="/podcasts" className={getIconLinkClass("/podcasts")} title="Podcasts">
-            <Podcast className="w-5 h-5" />
           </Link>
           <Link href="/community" className={getIconLinkClass("/community")} title="Community">
             <Users className="w-5 h-5" />
@@ -92,22 +80,10 @@ export function LeftSidebar() {
               <Home className="w-5 h-5" />
               Home
             </Link>
-            <Link href="/explore" className={getLinkClass("/explore")}>
-              <Compass className="w-5 h-5" />
-              Explore
-            </Link>
-            <Link href="/radio" className={getLinkClass("/radio")}>
-              <Radio className="w-5 h-5" />
-              Radio
-            </Link>
           </nav>
 
           {/* Library Nav */}
           <nav className="space-y-1">
-            <Link href="/library" className={getLinkClass("/library")}>
-              <Library className="w-5 h-5" />
-              Library
-            </Link>
             <Link href="/playlists" className={getLinkClass("/playlists")}>
               <ListMusic className="w-5 h-5" />
               Playlists
@@ -115,10 +91,6 @@ export function LeftSidebar() {
             <Link href="/liked" className={getLinkClass("/liked")}>
               <Heart className="w-5 h-5" />
               Liked Songs
-            </Link>
-            <Link href="/podcasts" className={getLinkClass("/podcasts")}>
-              <Podcast className="w-5 h-5" />
-              Podcasts
             </Link>
             <Link href="/community" className={getLinkClass("/community")}>
               <Users className="w-5 h-5" />
@@ -135,12 +107,6 @@ export function LeftSidebar() {
             <nav className="space-y-1">
               <Link href="/songs" className={getLinkClass("/songs")}>
                 <Music2 className="w-4 h-4" /> Songs
-              </Link>
-              <Link href="/artists" className={getLinkClass("/artists")}>
-                <Mic2 className="w-4 h-4" /> Artists
-              </Link>
-              <Link href="/albums" className={getLinkClass("/albums")}>
-                <Disc className="w-4 h-4" /> Albums
               </Link>
               <Link href="/downloads" className={getLinkClass("/downloads")}>
                 <Download className="w-4 h-4" /> Downloads

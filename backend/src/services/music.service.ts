@@ -1,4 +1,8 @@
 import { getMusicSource } from "@/lib/music-sources";
+import { mockMusicSource } from "@/lib/music-sources/mock";
+import { saavnMusicSource } from "@/lib/music-sources/saavn";
+import { workersMusicSource } from "@/lib/music-sources/workers";
+import { ytmusicMusicSource } from "@/lib/music-sources/ytmusic";
 import type { Track } from "@/types/music";
 import { isOriginalTrack, filterOriginalTracks } from "@/lib/music-filter";
 
@@ -45,13 +49,27 @@ export async function seedCatalogIfEmpty() {
   }
 }
 
+const sourceFallbacks = [ytmusicMusicSource, saavnMusicSource, workersMusicSource];
+
+async function searchRealSources(query: string, limit: number): Promise<Track[]> {
+  const preferredSource = getMusicSource();
+  const sources = process.env.MUSIC_SOURCE === "mock"
+    ? [mockMusicSource]
+    : [preferredSource, ...sourceFallbacks.filter((source) => source !== preferredSource)];
+
+  for (const source of sources) {
+    const tracks = await source.search(query, Math.max(limit * 3, 30));
+    const filtered = filterOriginalTracks(tracks).slice(0, limit);
+    if (filtered.length) return filtered;
+  }
+
+  return [];
+}
+
 export async function searchTracks(query: string, limit: number): Promise<Track[]> {
-  // Fetch more tracks than requested to compensate for any filtered AI / remix tracks
-  const searchLimit = Math.max(limit * 3, 30);
-  const tracks = await getMusicSource().search(query, searchLimit);
-  const filtered = filterOriginalTracks(tracks).slice(0, limit);
-  addToCatalogCache(filtered);
-  return filtered;
+  const results = await searchRealSources(query, limit);
+  addToCatalogCache(results);
+  return results;
 }
 
 export async function getTrackById(id: string): Promise<Track | null> {
@@ -68,6 +86,9 @@ export async function getPlaylistById(id: string): Promise<{ id: string, title: 
     const playlist = await source.getPlaylist(id);
     if (!playlist) return null;
     playlist.tracks = filterOriginalTracks(playlist.tracks);
+    if (!playlist.tracks.length && process.env.MUSIC_SOURCE !== "mock") {
+      playlist.tracks = await searchRealSources(playlist.title, 20);
+    }
     addToCatalogCache(playlist.tracks);
     return playlist;
   }
