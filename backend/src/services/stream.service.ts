@@ -4,15 +4,29 @@ import { execFile } from "child_process";
 import { Response } from "express";
 
 function resolveYtDlpPath() {
-  if (process.env.YTDLP_PATH) return process.env.YTDLP_PATH;
+  if (process.env.YTDLP_PATH) {
+    console.log("[yt-dlp] Using YTDLP_PATH env:", process.env.YTDLP_PATH);
+    return process.env.YTDLP_PATH;
+  }
   const binaryName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
   const candidates = [
+    // Placed here by build script: cp yt-dlp dist/yt-dlp
+    path.resolve(__dirname, binaryName),
+    // Build script also places in backend root: yt-dlp
+    path.resolve(__dirname, "..", binaryName),
+    // In case cwd is the backend directory
     path.resolve(process.cwd(), binaryName),
+    // In case cwd is the monorepo root
     path.resolve(process.cwd(), "backend", binaryName),
-    path.resolve(__dirname, "..", "..", binaryName),
   ];
 
-  return candidates.find((candidate) => existsSync(candidate)) || "yt-dlp";
+  const found = candidates.find((candidate) => existsSync(candidate));
+  if (found) {
+    console.log("[yt-dlp] Resolved binary:", found);
+    return found;
+  }
+  console.warn("[yt-dlp] Binary not found in candidates:", candidates.join(", "), "— falling back to PATH 'yt-dlp'");
+  return "yt-dlp";
 }
 
 const YTDLP_PATH = resolveYtDlpPath();
