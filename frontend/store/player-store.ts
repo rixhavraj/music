@@ -135,9 +135,14 @@ export const usePlayerStore = create<PlayerState>()(
         })),
 
       handleStreamError: () => {
-        // If a track fails to stream, auto-skip to the next one
-        console.error("Stream failed, skipping to next track...");
-        get().playNext();
+        console.error("Stream failed for track:", get().currentTrack?.title);
+        const state = get();
+        if (!state.isPlaying) return;
+
+        const next = get().playNext();
+        if (next instanceof Promise) {
+          next.catch((err) => console.error("Auto-skip after stream failure failed:", err));
+        }
       },
 
       // Alias so music-home.tsx can call either play() or playTrack()

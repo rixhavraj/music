@@ -6,14 +6,25 @@ import { ytmusicMusicSource } from "@/lib/music-sources/ytmusic";
 import type { MusicSource } from "@/lib/music-sources/types";
 
 export function getMusicSource(): MusicSource {
-  if (process.env.MUSIC_SOURCE === "ytmusic") {
+  const source = (process.env.MUSIC_SOURCE || "").toLowerCase();
+
+  if (source === "ytmusic") {
     return ytmusicMusicSource;
   }
-  if (process.env.MUSIC_SOURCE === "workers") {
-    return workersMusicSource;
-  }
-  if (process.env.MUSIC_SOURCE === "saavn") {
+  if (source === "saavn") {
     return saavnMusicSource;
   }
-  return process.env.MUSIC_SOURCE === "gaanapy" ? gaanapyMusicSource : mockMusicSource;
+  if (source === "workers") {
+    return workersMusicSource;
+  }
+  if (source === "gaanapy") {
+    return gaanapyMusicSource;
+  }
+
+  if (process.env.NODE_ENV === "production" && (!source || source === "mock")) {
+    console.warn("WARNING: Production MUSIC_SOURCE is missing or set to mock! Falling back to ytmusic for real audio playback.");
+    return ytmusicMusicSource;
+  }
+
+  return mockMusicSource;
 }

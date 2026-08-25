@@ -53,15 +53,29 @@ async function handleProxy(req: NextRequest) {
     const response = await fetch(targetUrl.toString(), fetchOptions);
 
     const responseHeaders = new Headers(response.headers);
-    // Remove headers that might cause issues when proxying
-    responseHeaders.delete("content-encoding");
+
+    // If upstream sent a compressed response (e.g. gzip), fetch auto-decompresses it.
+    // We MUST delete content-length along with content-encoding so Vercel does not
+    // send a stale (smaller) compressed Content-Length for an uncompressed body.
+    if (response.headers.has("content-encoding")) {
+      responseHeaders.delete("content-encoding");
+      responseHeaders.delete("content-length");
+    }
     responseHeaders.delete("transfer-encoding");
+
+    // Forward redirect locations if backend returned a redirect
+    if (response.headers.has("location")) {
+      responseHeaders.set("Location", response.headers.get("location")!);
+    }
 
     // These headers are required for seeking and for Web Audio consumers of
     // the proxied stream. They are safe to expose because this is same-origin
     // with the Next.js app.
     if (response.headers.has("accept-ranges")) {
       responseHeaders.set("Accept-Ranges", response.headers.get("accept-ranges")!);
+    }
+    if (response.headers.has("content-range")) {
+      responseHeaders.set("Content-Range", response.headers.get("content-range")!);
     }
 
     return new NextResponse(response.body, {

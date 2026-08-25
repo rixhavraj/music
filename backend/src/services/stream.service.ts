@@ -34,7 +34,7 @@ export async function getCachedStreamUrl(id: string): Promise<string> {
       "--format",
       "bestaudio[ext=m4a]/bestaudio/best",
       "--extractor-args",
-      "youtube:player_client=android,web",
+      "youtube:player_client=mweb,android,web",
     ];
 
     if (process.env.YTDLP_COOKIES_PATH) {
@@ -52,7 +52,7 @@ export async function getCachedStreamUrl(id: string): Promise<string> {
         reject(new Error("yt-dlp failed for " + id + " using " + YTDLP_PATH + ": " + message));
         return;
       }
-      streamUrlCache.set(id, { url: directUrl, expiresAt: Date.now() + 30 * 60 * 1000 });
+      streamUrlCache.set(id, { url: directUrl, expiresAt: Date.now() + 25 * 60 * 1000 });
       resolve(directUrl);
     });
   });

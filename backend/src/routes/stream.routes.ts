@@ -21,6 +21,20 @@ function fallbackTone(id: string, res: any) {
   res.send(makeToneWav(frequency, 30));
 }
 
+function handleStreamFailure(id: string, res: any, message: string) {
+  if (process.env.MUSIC_SOURCE === "mock" && process.env.NODE_ENV !== "production") {
+    fallbackTone(id, res);
+    return;
+  }
+  if (!res.headersSent) {
+    res.status(502).json({
+      error: "Audio streaming failure",
+      message: message || "Failed to extract or pipe audio stream from upstream source.",
+      trackId: id,
+    });
+  }
+}
+
 async function tryAlternativeStream(failedId: string, req: any, res: any): Promise<boolean> {
   const rawTitle = typeof req.query.title === "string" ? req.query.title.trim() : "";
   const rawArtist = typeof req.query.artist === "string" ? req.query.artist.trim() : "";
@@ -31,28 +45,32 @@ async function tryAlternativeStream(failedId: string, req: any, res: any): Promi
   const seenIds = new Set([failedId]);
 
   for (const provider of providers) {
-    const tracks = await provider.search(query, 8);
-    for (const track of tracks) {
-      if (seenIds.has(track.id)) continue;
-      seenIds.add(track.id);
+    try {
+      const tracks = await provider.search(query, 8);
+      for (const track of tracks) {
+        if (seenIds.has(track.id)) continue;
+        seenIds.add(track.id);
 
-      try {
-        if (isYoutubeVideoId(track.id)) {
-          const directUrl = await getCachedStreamUrl(track.id);
+        try {
+          if (isYoutubeVideoId(track.id)) {
+            const directUrl = await getCachedStreamUrl(track.id);
+            res.setHeader("X-Stream-Fallback-Id", track.id);
+            await pipeYoutubeStream(directUrl, req.headers.range, res);
+            return true;
+          }
+
+          const directUrl = await provider.getStreamUrl(track.id);
+          if (!directUrl) continue;
           res.setHeader("X-Stream-Fallback-Id", track.id);
           await pipeYoutubeStream(directUrl, req.headers.range, res);
           return true;
+        } catch (error) {
+          invalidateStreamUrl(track.id);
+          console.error("Alternative stream failed for " + track.id + ":", error);
         }
-
-        const directUrl = await provider.getStreamUrl(track.id);
-        if (!directUrl) continue;
-        res.setHeader("X-Stream-Fallback-Id", track.id);
-        await pipeYoutubeStream(directUrl, req.headers.range, res);
-        return true;
-      } catch (error) {
-        invalidateStreamUrl(track.id);
-        console.error("Alternative stream failed for " + track.id + ":", error);
       }
+    } catch (searchError) {
+      console.error("Alternative provider search failed:", searchError);
     }
   }
 
@@ -72,9 +90,9 @@ router.get("/stream/:id/url", optionalAuth, async (req, res) => {
       const directUrl = await getCachedStreamUrl(parsed.data);
       res.json({ url: directUrl });
       return;
-    } catch (error) {
+    } catch (error: any) {
       console.error("yt-dlp URL resolution error:", error);
-      res.status(500).json({ error: "Failed to resolve stream URL" });
+      res.status(500).json({ error: "Failed to resolve stream URL", details: error?.message });
       return;
     }
   }
@@ -82,8 +100,8 @@ router.get("/stream/:id/url", optionalAuth, async (req, res) => {
   res.json({ url: `/api/stream/${parsed.data}` });
 });
 
-// GET /api/stream/:id
-router.get("/stream/:id", optionalAuth, async (req, res) => {
+// GET & HEAD /api/stream/:id
+const handleStream = async (req: any, res: any) => {
   // Rate limiting disabled for stream chunk requests to prevent playback stuttering and desync.
   
   const parsed = idSchema.safeParse(req.params.id);
@@ -95,6 +113,8 @@ router.get("/stream/:id", optionalAuth, async (req, res) => {
   // Auto-record play event on stream start
   const userId = req.user?.userId ?? null;
   recordPlay(parsed.data, userId);
+
+  let lastErrorMsg = "";
 
   if (process.env.MUSIC_SOURCE === "ytmusic" && isYoutubeVideoId(parsed.data)) {
     try {
@@ -113,7 +133,8 @@ router.get("/stream/:id", optionalAuth, async (req, res) => {
         }
       }
       return;
-    } catch (error) {
+    } catch (error: any) {
+      lastErrorMsg = error?.message || String(error);
       console.error("yt-dlp streaming proxy error:", error);
       if (!res.headersSent) {
         try {
@@ -123,7 +144,7 @@ router.get("/stream/:id", optionalAuth, async (req, res) => {
           console.error("Alternative stream recovery failed:", fallbackError);
         }
 
-        fallbackTone(parsed.data, res);
+        handleStreamFailure(parsed.data, res, lastErrorMsg);
       }
       return;
     }
@@ -136,14 +157,17 @@ router.get("/stream/:id", optionalAuth, async (req, res) => {
         res.redirect(directUrl);
         return;
       }
-    } catch (error) {
+    } catch (error: any) {
+      lastErrorMsg = error?.message || String(error);
       console.error("Streaming URL resolution error:", error);
     }
   }
 
-  // Fallback to tone generation if no configured source can provide audio.
-  fallbackTone(parsed.data, res);
-});
+  handleStreamFailure(parsed.data, res, lastErrorMsg || "No configured music source could stream this track");
+};
+
+router.get("/stream/:id", optionalAuth, handleStream);
+router.head("/stream/:id", optionalAuth, handleStream);
 
 export default router;
 
