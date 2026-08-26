@@ -1,32 +1,48 @@
-import { existsSync } from "fs";
+import { accessSync, constants, existsSync } from "fs";
 import path from "path";
-import { execFile } from "child_process";
+import { execFile, execFileSync } from "child_process";
 import { Response } from "express";
 
 function resolveYtDlpPath() {
-  if (process.env.YTDLP_PATH) {
-    console.log("[yt-dlp] Using YTDLP_PATH env:", process.env.YTDLP_PATH);
-    return process.env.YTDLP_PATH;
-  }
   const binaryName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
   const candidates = [
-    // Placed here by build script: cp yt-dlp dist/yt-dlp
-    path.resolve(__dirname, binaryName),
-    // Build script also places in backend root: yt-dlp
     path.resolve(__dirname, "..", binaryName),
-    // In case cwd is the backend directory
+    path.resolve(__dirname, binaryName),
     path.resolve(process.cwd(), binaryName),
-    // In case cwd is the monorepo root
     path.resolve(process.cwd(), "backend", binaryName),
   ];
 
-  const found = candidates.find((candidate) => existsSync(candidate));
-  if (found) {
-    console.log("[yt-dlp] Resolved binary:", found);
-    return found;
+  if (process.env.YTDLP_PATH) {
+    candidates.unshift(path.resolve(process.env.YTDLP_PATH));
   }
-  console.warn("[yt-dlp] Binary not found in candidates:", candidates.join(", "), "— falling back to PATH 'yt-dlp'");
-  return "yt-dlp";
+
+  const found = candidates.find((candidate) => {
+    try {
+      accessSync(candidate, constants.X_OK);
+      return existsSync(candidate);
+    } catch {
+      return false;
+    }
+  });
+
+  if (!found && process.env.NODE_ENV !== "production") {
+    try {
+      execFileSync(binaryName, ["--version"], { stdio: "ignore" });
+      console.log("[yt-dlp] Resolved binary from PATH:", binaryName);
+      return binaryName;
+    } catch {
+      // Continue to the explicit startup error below.
+    }
+  }
+
+  if (!found) {
+    throw new Error(`[yt-dlp] yt-dlp executable not found. Paths checked: ${candidates.join(", ")}`);
+  }
+
+  const version = execFileSync(found, ["--version"], { encoding: "utf8" }).trim();
+  console.log("[yt-dlp] Resolved binary:", found);
+  console.log("[yt-dlp] Version:", version);
+  return found;
 }
 
 const YTDLP_PATH = resolveYtDlpPath();

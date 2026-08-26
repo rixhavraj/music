@@ -41,32 +41,44 @@ async function tryAlternativeStream(failedId: string, req: any, res: any): Promi
   const query = [rawTitle, rawArtist].filter(Boolean).join(" ").trim();
   if (!query) return false;
 
-  const providers = [getMusicSource(), saavnMusicSource];
-  const seenIds = new Set([failedId]);
+  // Priority: try Saavn first — it returns direct CDN URLs without yt-dlp
+  try {
+    const saavnTracks = await saavnMusicSource.search(query, 10);
+    for (const track of saavnTracks) {
+      // Skip YouTube IDs — those require yt-dlp which is not available
+      if (isYoutubeVideoId(track.id)) continue;
 
-  for (const provider of providers) {
+      try {
+        const directUrl = await saavnMusicSource.getStreamUrl(track.id);
+        if (!directUrl) continue;
+        console.log(`[stream] Saavn fallback for ${failedId} → Saavn track ${track.id}`);
+        res.setHeader("X-Stream-Fallback-Id", track.id);
+        res.setHeader("X-Stream-Fallback-Source", "saavn");
+        await pipeYoutubeStream(directUrl, req.headers.range, res);
+        return true;
+      } catch (error) {
+        console.error("Saavn direct stream failed for " + track.id + ":", error);
+      }
+    }
+  } catch (searchError) {
+    console.error("Saavn fallback search failed:", searchError);
+  }
+
+  // Secondary: try other non-YouTube providers
+  const otherSource = getMusicSource();
+  if (otherSource !== saavnMusicSource) {
     try {
-      const tracks = await provider.search(query, 8);
+      const tracks = await otherSource.search(query, 8);
       for (const track of tracks) {
-        if (seenIds.has(track.id)) continue;
-        seenIds.add(track.id);
-
+        if (track.id === failedId || isYoutubeVideoId(track.id)) continue;
         try {
-          if (isYoutubeVideoId(track.id)) {
-            const directUrl = await getCachedStreamUrl(track.id);
-            res.setHeader("X-Stream-Fallback-Id", track.id);
-            await pipeYoutubeStream(directUrl, req.headers.range, res);
-            return true;
-          }
-
-          const directUrl = await provider.getStreamUrl(track.id);
+          const directUrl = await otherSource.getStreamUrl(track.id);
           if (!directUrl) continue;
           res.setHeader("X-Stream-Fallback-Id", track.id);
           await pipeYoutubeStream(directUrl, req.headers.range, res);
           return true;
         } catch (error) {
-          invalidateStreamUrl(track.id);
-          console.error("Alternative stream failed for " + track.id + ":", error);
+          console.error("Alternative provider stream failed for " + track.id + ":", error);
         }
       }
     } catch (searchError) {

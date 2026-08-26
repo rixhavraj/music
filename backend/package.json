@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "ts-node -r tsconfig-paths/register src/server.ts",
-    "build": "tsc && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o yt-dlp && chmod a+rx yt-dlp && cp yt-dlp dist/yt-dlp",
+    "build": "tsc && node scripts/install-yt-dlp.mjs",
     "start": "node dist/server.js"
   },
   "dependencies": {
@@ -27,6 +27,7 @@
     "zod": "^3.25.0"
   },
   "devDependencies": {
-    "prisma": "^7.9.0"
+    "prisma": "^7.9.0",
+    "tsc-alias": "^1.9.2"
   }
 }

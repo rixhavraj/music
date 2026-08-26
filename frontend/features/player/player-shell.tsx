@@ -233,7 +233,10 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
         console.warn(`Stream dropped, attempting resume (${retryCountRef.current}/3)...`);
         
         const currentTime = audio.currentTime;
-        audio.src = (currentTrack.streamUrl || `/api/stream/${currentTrack.id}`) + `?retry=${Date.now()}`;
+        const streamPath = currentTrack.streamUrl?.includes(`/stream/${currentTrack.id}`)
+          ? currentTrack.streamUrl
+          : `/api/stream/${currentTrack.id}`;
+        audio.src = `${streamPath}${streamPath.includes("?") ? "&" : "?"}retry=${Date.now()}`;
         audio.load();
         
         const onReady = () => {
