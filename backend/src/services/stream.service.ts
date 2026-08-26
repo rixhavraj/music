@@ -6,6 +6,7 @@ import { Response } from "express";
 function resolveYtDlpPath() {
   const binaryName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
   const candidates = [
+    path.resolve(process.cwd(), "dist", binaryName),
     path.resolve(__dirname, "..", binaryName),
     path.resolve(__dirname, binaryName),
     path.resolve(process.cwd(), binaryName),
@@ -36,7 +37,7 @@ function resolveYtDlpPath() {
   }
 
   if (!found) {
-    throw new Error(`[yt-dlp] yt-dlp executable not found. Paths checked: ${candidates.join(", ")}`);
+    throw new Error(`[yt-dlp] yt-dlp executable not found. Paths checked:\n${candidates.join("\n")}`);
   }
 
   const version = execFileSync(found, ["--version"], { encoding: "utf8" }).trim();

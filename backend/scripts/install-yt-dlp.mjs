@@ -39,7 +39,19 @@ function download(url, destination) {
 
 async function main() {
   await mkdir(distDirectory, { recursive: true });
-  await download(downloadUrl, temporaryPath);
+  if (process.platform === "win32") {
+    await download(downloadUrl, temporaryPath);
+  } else {
+    execFileSync("curl", [
+      "-L",
+      "--fail",
+      "--silent",
+      "--show-error",
+      "--output",
+      temporaryPath,
+      downloadUrl,
+    ], { stdio: "inherit" });
+  }
   await chmod(temporaryPath, 0o755);
   await rename(temporaryPath, binaryPath);
 

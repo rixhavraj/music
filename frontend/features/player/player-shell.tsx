@@ -62,6 +62,7 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
     currentTrack, isPlaying, shuffle, repeat, volume, likedIds,
     playbackSpeed, togglePlaying, setPlaying, playNext, playPrevious,
     toggleShuffle, cycleRepeat, setVolume, toggleLike, setBufferedPercent, bufferedPercent,
+    playbackError, setPlaybackError,
   } = usePlayerStore();
 
   const isLiked      = currentTrack ? likedIds.includes(currentTrack.id) : false;
@@ -145,6 +146,7 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
     audio.playbackRate = playbackSpeed;
     finishHandledRef.current = false;
     retryCountRef.current = 0;
+    setPlaybackError(null);
     setProgress(0);
     setBufferedPercent(0);
     if (isPlaying) audio.play().catch(() => setPlaying(false));
@@ -236,7 +238,7 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
         const streamPath = currentTrack.streamUrl?.includes(`/stream/${currentTrack.id}`)
           ? currentTrack.streamUrl
           : `/api/stream/${currentTrack.id}`;
-        audio.src = `${streamPath}${streamPath.includes("?") ? "&" : "?"}retry=${Date.now()}`;
+        audio.src = streamPath;
         audio.load();
         
         const onReady = () => {
@@ -338,6 +340,12 @@ export function PlayerShell({ visuallyHidden = false }: { visuallyHidden?: boole
         onStalled={finishIfNearEnd}
         onWaiting={finishIfNearEnd}
       />
+
+      {playbackError && (
+        <div className="pointer-events-auto absolute bottom-full mb-3 rounded-lg bg-red-950/90 px-4 py-2 text-sm text-red-100 shadow-lg">
+          {playbackError}
+        </div>
+      )}
 
       {/* ═══════════ MOBILE  (< sm) ═══════════════════════════════════════ */}
       {currentTrack && (

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "ts-node -r tsconfig-paths/register src/server.ts",
-    "build": "tsc && node scripts/install-yt-dlp.mjs",
+    "build": "tsc && tsc-alias && node scripts/install-yt-dlp.mjs",
     "start": "node dist/server.js"
   },
   "dependencies": {

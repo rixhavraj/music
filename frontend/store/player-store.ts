@@ -26,6 +26,7 @@ type PlayerState = {
   sleepTimer: SleepTimer;
   sleepTimerEndsAt: number | null; // epoch ms
   bufferedPercent: number;          // 0–100 from HTMLAudioElement.buffered
+  playbackError: string | null;
   playedHistory: { id: string; timestamp: number }[]; // internal strict cache for no-repeats
   // Actions
   setQueue: (tracks: Track[]) => void;
@@ -45,6 +46,7 @@ type PlayerState = {
   setSleepTimer: (timer: SleepTimer) => void;
   clearSleepTimer: () => void;
   setBufferedPercent: (percent: number) => void;
+  setPlaybackError: (message: string | null) => void;
   handleStreamError: () => void;
 };
 
@@ -112,6 +114,7 @@ export const usePlayerStore = create<PlayerState>()(
       sleepTimer: "off",
       sleepTimerEndsAt: null,
       bufferedPercent: 0,
+      playbackError: null,
       playedHistory: [],
 
       setQueue: (tracks) => set({ queue: tracks }),
@@ -132,18 +135,16 @@ export const usePlayerStore = create<PlayerState>()(
             ),
           ].slice(0, 100),
           bufferedPercent: 0,
+          playbackError: null,
         })),
 
       handleStreamError: () => {
-        console.error("Stream failed for track:", get().currentTrack?.title);
-        const state = get();
-        if (!state.isPlaying) return;
-
-        const next = get().playNext();
-        if (next instanceof Promise) {
-          next.catch((err) => console.error("Auto-skip after stream failure failed:", err));
-        }
+        const trackTitle = get().currentTrack?.title || "this track";
+        console.error("Stream failed for track:", trackTitle);
+        set({ isPlaying: false, playbackError: `Unable to play ${trackTitle}. Try again.` });
       },
+
+      setPlaybackError: (message) => set({ playbackError: message }),
 
       // Alias so music-home.tsx can call either play() or playTrack()
       play: (track, queue) => {
