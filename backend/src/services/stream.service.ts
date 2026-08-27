@@ -58,35 +58,48 @@ export async function getCachedStreamUrl(id: string): Promise<string> {
   const cached = streamUrlCache.get(id);
   if (cached && cached.expiresAt > Date.now()) return cached.url;
 
-  return new Promise((resolve, reject) => {
-    const args = [
-      "-g",
-      "--no-playlist",
-      "--format",
-      "bestaudio[ext=m4a]/bestaudio/best",
-      "--extractor-args",
-      "youtube:player_client=mweb,android,web",
-    ];
+  const profiles = ["android", "mweb,android,web"];
+  let lastError = "No URL returned from yt-dlp";
 
-    if (process.env.YTDLP_COOKIES_PATH) {
-      args.push("--cookies", process.env.YTDLP_COOKIES_PATH);
-    } else if (process.env.YTDLP_COOKIES_FROM_BROWSER) {
-      args.push("--cookies-from-browser", process.env.YTDLP_COOKIES_FROM_BROWSER);
-    }
+  for (const profile of profiles) {
+    try {
+      const directUrl = await new Promise<string>((resolve, reject) => {
+        const args = [
+          "-g",
+          "--no-playlist",
+          "--format",
+          "bestaudio[ext=m4a]/bestaudio/best",
+          "--extractor-args",
+          `youtube:player_client=${profile}`,
+        ];
 
-    args.push("https://www.youtube.com/watch?v=" + id);
+        if (process.env.YTDLP_COOKIES_PATH) {
+          args.push("--cookies", process.env.YTDLP_COOKIES_PATH);
+        } else if (process.env.YTDLP_COOKIES_FROM_BROWSER) {
+          args.push("--cookies-from-browser", process.env.YTDLP_COOKIES_FROM_BROWSER);
+        }
 
-    execFile(YTDLP_PATH, args, { timeout: 45000, windowsHide: true }, (err, stdout, stderr) => {
-      const directUrl = stdout.trim().split(/\r?\n/)[0];
-      if (err || !directUrl) {
-        const message = stderr.trim() || (err && err.message) || "No URL returned from yt-dlp";
-        reject(new Error("yt-dlp failed for " + id + " using " + YTDLP_PATH + ": " + message));
-        return;
-      }
+        args.push("https://www.youtube.com/watch?v=" + id);
+
+        execFile(YTDLP_PATH, args, { timeout: 45000, windowsHide: true }, (err, stdout, stderr) => {
+          const url = stdout.trim().split(/\r?\n/)[0];
+          if (!err && url) {
+            resolve(url);
+            return;
+          }
+          reject(new Error(stderr.trim() || (err && err.message) || "No URL returned from yt-dlp"));
+        });
+      });
+
       streamUrlCache.set(id, { url: directUrl, expiresAt: Date.now() + 25 * 60 * 1000 });
-      resolve(directUrl);
-    });
-  });
+      return directUrl;
+    } catch (error: any) {
+      lastError = error?.message || String(error);
+      console.warn(`[yt-dlp] Extraction profile ${profile} failed for ${id}`);
+    }
+  }
+
+  throw new Error("yt-dlp failed for " + id + " using " + YTDLP_PATH + ": " + lastError);
 }
 
 export function makeToneWav(frequency: number, durationSeconds = 10): Buffer {
