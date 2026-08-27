@@ -3,6 +3,16 @@ import path from "path";
 import { execFile, execFileSync } from "child_process";
 import { Response } from "express";
 
+/**
+ * Stream Service for YouTube extraction
+ *
+ * Cookie Handling:
+ * - Server initializes YTDLP_COOKIES_PATH from YOUTUBE_COOKIES env var or local cookies.txt
+ * - This function uses YTDLP_COOKIES_PATH to pass --cookies flag to yt-dlp
+ * - Falls back to --cookies-from-browser if YTDLP_COOKIES_PATH is not set
+ * - Supports both local development and Render deployment scenarios
+ */
+
 function resolveYtDlpPath() {
   const binaryName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
   const candidates = [
@@ -75,8 +85,12 @@ export async function getCachedStreamUrl(id: string): Promise<string> {
 
         if (process.env.YTDLP_COOKIES_PATH) {
           args.push("--cookies", process.env.YTDLP_COOKIES_PATH);
+          console.log(`[yt-dlp] Using cookies from ${process.env.YTDLP_COOKIES_PATH}`);
         } else if (process.env.YTDLP_COOKIES_FROM_BROWSER) {
           args.push("--cookies-from-browser", process.env.YTDLP_COOKIES_FROM_BROWSER);
+          console.log(`[yt-dlp] Using cookies from browser: ${process.env.YTDLP_COOKIES_FROM_BROWSER}`);
+        } else {
+          console.warn(`[yt-dlp] No cookies configured - extraction may fail for protected content`);
         }
 
         args.push("https://www.youtube.com/watch?v=" + id);

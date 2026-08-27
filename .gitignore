@@ -20,6 +20,7 @@ dist/
 *.pem
 *.key
 *.cert
+cookies.txt
 
 # Debug logs
 npm-debug.log*

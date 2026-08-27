@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import rateLimit from "express-rate-limit";
+import { writeFileSync, existsSync } from "fs";
 import apiRouter from "./routes";
 
 // ─── Environment ───────────────────────────────────────────────────────────────
@@ -12,6 +13,42 @@ if (!process.env.MUSIC_SOURCE) {
   dotenv.config({ path: path.join(__dirname, "../../frontend/.env.local") });
 }
 console.log("Loaded MUSIC_SOURCE:", process.env.MUSIC_SOURCE);
+
+// ─── YouTube Cookies Setup ────────────────────────────────────────────────────
+
+// Initialize cookies for yt-dlp from environment or local file
+let cookiePath: string | undefined;
+
+if (process.env.YOUTUBE_COOKIES) {
+  // Render/production: write env var to /tmp/cookies.txt
+  cookiePath = "/tmp/cookies.txt";
+  try {
+    writeFileSync(cookiePath, process.env.YOUTUBE_COOKIES, "utf-8");
+    console.log("[Cookies] Wrote YOUTUBE_COOKIES to", cookiePath);
+  } catch (err) {
+    console.error("[Cookies] Failed to write cookies to", cookiePath, err);
+    cookiePath = undefined;
+  }
+} else {
+  // Local development: check for cookies.txt in project root
+  const localCookiesPath = path.join(process.cwd(), "cookies.txt");
+  if (existsSync(localCookiesPath)) {
+    cookiePath = localCookiesPath;
+    console.log("[Cookies] Found local cookies at", localCookiesPath);
+  } else {
+    console.warn(
+      "[Cookies] No YOUTUBE_COOKIES env var and no local cookies.txt found. " +
+      "YouTube extraction may fail due to age-restricted or protected content."
+    );
+  }
+}
+
+// Set the environment variable for yt-dlp to use
+if (cookiePath) {
+  process.env.YTDLP_COOKIES_PATH = cookiePath;
+} else {
+  delete process.env.YTDLP_COOKIES_PATH;
+}
 
 
 // ─── App setup ─────────────────────────────────────────────────────────────────
