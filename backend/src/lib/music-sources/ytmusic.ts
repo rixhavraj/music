@@ -141,12 +141,15 @@ export const ytmusicMusicSource: MusicSource = {
   async getPlaylist(id: string) {
     try {
       const yt = await getYTMusicClient();
-      const playlist = (await yt.getPlaylist(id)) as any;
+      // ytmusic-api's getPlaylist() currently assumes a field that YouTube
+      // sometimes omits and crashes in PlaylistParser with
+      // "Cannot read properties of undefined (reading 'split')". The video
+      // endpoint is enough to build a usable playlist and is more tolerant
+      // of YouTube's changing response shape.
       const videos = (await yt.getPlaylistVideos(id)) as any[];
 
-      if (!playlist || !videos?.length) return fallbackPlaylist(id);
+      if (!videos?.length) return fallbackPlaylist(id);
 
-      const cover = playlist.thumbnails?.[playlist.thumbnails.length - 1]?.url || "";
       const tracks = videos.filter((v: any) => v?.videoId).map((v: any) => normalize({
         ...v,
         type: "SONG"
@@ -154,10 +157,12 @@ export const ytmusicMusicSource: MusicSource = {
 
       if (!tracks.length) return fallbackPlaylist(id);
 
+      const fallback = playlistFallbacks[id];
+
       return {
-        id: playlist.playlistId || id,
-        title: playlist.name || "Playlist",
-        cover: cover || tracks[0]?.cover || "",
+        id,
+        title: fallback?.title || "Playlist",
+        cover: fallback?.cover || tracks[0]?.cover || "",
         tracks
       };
     } catch (error) {

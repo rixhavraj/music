@@ -211,7 +211,7 @@ export function pipeYoutubeStream(directUrl: string, rangeHeader: string | undef
       const statusCode = youtubeRes.statusCode || 200;
       if (statusCode >= 400) {
         cleanup();
-        const err = new Error(`HTTP ${statusCode} from YouTube`);
+        const err = new Error(`HTTP ${statusCode} from upstream audio source`);
         (err as any).statusCode = statusCode;
         reject(err);
         return;
