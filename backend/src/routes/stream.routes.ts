@@ -54,7 +54,10 @@ async function tryAlternativeStream(failedId: string, req: any, res: any): Promi
         console.log(`[stream] Saavn fallback for ${failedId} → Saavn track ${track.id}`);
         res.setHeader("X-Stream-Fallback-Id", track.id);
         res.setHeader("X-Stream-Fallback-Source", "saavn");
-        await pipeYoutubeStream(directUrl, req.headers.range, res);
+        // Saavn returns a signed CDN URL. Redirect to it directly instead of
+        // proxying it through the YouTube-oriented range streamer; Saavn CDN
+        // URLs commonly reject that proxy request with HTTP 404.
+        res.redirect(307, directUrl);
         return true;
       } catch (error) {
         console.error("Saavn direct stream failed for " + track.id + ":", error);
@@ -75,7 +78,7 @@ async function tryAlternativeStream(failedId: string, req: any, res: any): Promi
           const directUrl = await otherSource.getStreamUrl(track.id);
           if (!directUrl) continue;
           res.setHeader("X-Stream-Fallback-Id", track.id);
-          await pipeYoutubeStream(directUrl, req.headers.range, res);
+          res.redirect(307, directUrl);
           return true;
         } catch (error) {
           console.error("Alternative provider stream failed for " + track.id + ":", error);
@@ -182,4 +185,3 @@ router.get("/stream/:id", optionalAuth, handleStream);
 router.head("/stream/:id", optionalAuth, handleStream);
 
 export default router;
-
