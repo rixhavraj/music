@@ -28,3 +28,6 @@ pnpm exec tsc --noEmit
 pnpm build
 ```
 
+this is how you will use this project 
+this is a very upper level project helped to stream music add free 
+
