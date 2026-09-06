@@ -31,3 +31,5 @@ pnpm build
 this is how you will use this project 
 this is a very upper level project helped to stream music add free 
 
+
+Q-Learning is a fundamental, model-free Reinforcement Learning (RL) algorithm. It enables an agent to learn how to act optimally in a Markov Decision Process (MDP) through trial-and-error interactions with an environment.
