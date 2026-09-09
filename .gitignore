@@ -11,8 +11,6 @@ build/
 dist/
 
 # Environment Variables & Secrets
-.env
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -30,7 +28,6 @@ pnpm-debug.log*
 
 # IDEs and Editors
 .idea/
-.vscode/
 *.suo
 *.ntvs*
 *.njsproj
@@ -48,3 +45,4 @@ Thumbs.db
 branch_structure.json
 temp_auto_push.bat
 temp_interactive_push.bat
+config.bat
