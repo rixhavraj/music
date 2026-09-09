@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "ts-node -r tsconfig-paths/register src/server.ts",
-    "build": "tsc && tsc-alias && node scripts/install-yt-dlp.mjs",
-    "start": "node dist/server.js"
+    "dev": "node api.js && ts-node -r tsconfig-paths/register src/server.ts",
+    "build": "node api.js && tsc && tsc-alias && node scripts/install-yt-dlp.mjs",
+    "start": "node api.js && node dist/server.js"
   },
   "dependencies": {
     "@prisma/client": "^7.9.0",
